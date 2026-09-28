@@ -546,9 +546,22 @@ namespace WpfApp1.Services
                     Height = context.MediaSize.Height
                 };
 
+                // 用 RenderTargetBitmap 提前光栅化每页，避免 DrawingImage 懒求值导致
+                // XPS 序列化时所有页渲染同一张图的问题。
+                int pw = (int)Math.Ceiling(context.ContentSize.Width);
+                int ph = (int)Math.Ceiling(context.ContentSize.Height);
+                double dpiScale = Math.Max(1, context.OutputDpi) / 96.0;
+                var rtb = new RenderTargetBitmap(
+                    (int)Math.Ceiling(pw * dpiScale),
+                    (int)Math.Ceiling(ph * dpiScale),
+                    context.OutputDpi, context.OutputDpi,
+                    PixelFormats.Pbgra32);
+                rtb.Render(visual);
+                rtb.Freeze();
+
                 var img = new System.Windows.Controls.Image
                 {
-                    Source = CreatePageImage(visual, context.ContentSize),
+                    Source = rtb,
                     Width = context.ContentSize.Width,
                     Height = context.ContentSize.Height,
                     Stretch = Stretch.Fill
