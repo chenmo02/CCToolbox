@@ -27,6 +27,16 @@ namespace WpfApp1.Converters
             => v is Visibility.Collapsed;
     }
 
+    /// <summary>ScrollViewer.ViewportWidth → 行宽（留出纵向滚动条与内边距）</summary>
+    public sealed class ViewportWidthConverter : IValueConverter
+    {
+        public static readonly ViewportWidthConverter Instance = new();
+        public object Convert(object v, Type t, object p, CultureInfo c)
+            => v is double width && width > 0 ? Math.Max(0d, width - 8d) : 0d;
+        public object ConvertBack(object v, Type t, object p, CultureInfo c)
+            => throw new NotSupportedException();
+    }
+
     /// <summary>bool → "是"/"否"</summary>
     public sealed class BoolYesNoConverter : IValueConverter
     {

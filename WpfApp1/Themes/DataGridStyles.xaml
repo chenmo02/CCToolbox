@@ -57,6 +57,7 @@
 
     <!-- 行头样式 (RowHeader) -->
     <Style x:Key="ModernDataGridRowHeaderStyle" TargetType="DataGridRowHeader">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Background" Value="#F8FAFC"/>
         <Setter Property="Foreground" Value="#64748B"/>
         <Setter Property="BorderBrush" Value="#E2E8F0"/>
@@ -109,6 +110,7 @@
 
     <!-- 行样式 (Row) -->
     <Style x:Key="ModernDataGridRowStyle" TargetType="DataGridRow">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Height" Value="44"/>
         <Setter Property="Background" Value="#FFFFFF"/>
         <Setter Property="SnapsToDevicePixels" Value="True"/>
@@ -126,6 +128,7 @@
 
     <!-- 主 DataGrid 核心样式 -->
     <Style x:Key="ModernDataGridStyle" TargetType="DataGrid">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="ColumnHeaderStyle" Value="{StaticResource ModernDataGridHeaderStyle}"/>
         <Setter Property="RowHeaderStyle" Value="{StaticResource ModernDataGridRowHeaderStyle}"/>
         <Setter Property="CellStyle" Value="{StaticResource ModernDataGridCellStyle}"/>

@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:controls="clr-namespace:WpfApp1.Controls"
       Background="{DynamicResource PageBackgroundAltBrush}" Foreground="#17345F" FontFamily="Microsoft YaHei UI, Segoe UI"
-      UseLayoutRounding="True" SizeChanged="Page_SizeChanged">
+      UseLayoutRounding="True" SizeChanged="Page_SizeChanged"
+      FocusVisualStyle="{x:Null}">
     <Page.Resources>
         <Style TargetType="controls:JsonDiffEditor">
             <Style.Resources>
@@ -20,6 +21,7 @@
             <Setter Property="CornerRadius" Value="6"/>
         </Style>
         <Style x:Key="Action" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#214471"/>
             <Setter Property="Background" Value="#FAFCFF"/>
             <Setter Property="BorderBrush" Value="#D5E2F5"/>
@@ -53,6 +55,7 @@
             <Setter Property="Padding" Value="9,4"/><Setter Property="FontSize" Value="11"/>
         </Style>
         <Style x:Key="Stat" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="IsChecked" Value="True"/><Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Margin" Value="4,0"/>
             <Setter Property="Template">
@@ -72,6 +75,7 @@
             </Setter>
         </Style>
         <Style x:Key="NavItem" TargetType="ListBoxItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
             <Setter Property="Padding" Value="10,8"/><Setter Property="Margin" Value="0,1"/>
             <Setter Property="Template">
@@ -188,7 +192,7 @@
                                     <TextBlock x:Name="NavCount" Text="0 处差异" FontSize="11" Foreground="#4D88E8" HorizontalAlignment="Right" VerticalAlignment="Center"/>
                                 </DockPanel>
                                 <Grid>
-                                    <ListBox x:Name="DiffNavigation" Style="{x:Null}" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
+                                    <ListBox x:Name="DiffNavigation" Style="{x:Null}" FocusVisualStyle="{x:Null}" Background="Transparent" BorderThickness="0" ItemContainerStyle="{StaticResource NavItem}"
                                              ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="DiffNavigation_SelectionChanged">
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
@@ -240,19 +244,19 @@
                             <TextBlock x:Name="DetailHint" Text="点击记录可定位到源 JSON" FontSize="11" Foreground="#8B9DB5" HorizontalAlignment="Right"/>
                         </DockPanel>
                         <Grid>
-                            <DataGrid x:Name="DiffDetails" Style="{x:Null}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
+                            <DataGrid x:Name="DiffDetails" Style="{x:Null}" FocusVisualStyle="{x:Null}" AutoGenerateColumns="False" IsReadOnly="True" CanUserAddRows="False" CanUserDeleteRows="False"
                                       CanUserReorderColumns="False" CanUserSortColumns="False" HeadersVisibility="Column" RowHeaderWidth="0" GridLinesVisibility="All"
                                       HorizontalGridLinesBrush="#E7EDF6" VerticalGridLinesBrush="#E7EDF6" BorderBrush="#E0E9F7" BorderThickness="1"
                                       Background="White" Foreground="#264166" SelectionMode="Single" SelectionUnit="FullRow" SelectionChanged="DiffDetails_SelectionChanged"
                                       EnableRowVirtualization="True" EnableColumnVirtualization="True" ScrollViewer.HorizontalScrollBarVisibility="Auto">
                                 <DataGrid.ColumnHeaderStyle>
-                                    <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#F4F8FE"/><Setter Property="Foreground" Value="#43618C"/><Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Padding" Value="12,8"/><Setter Property="BorderBrush" Value="#E7EDF6"/><Setter Property="BorderThickness" Value="0,0,1,1"/></Style>
+                                    <Style TargetType="DataGridColumnHeader"><Setter Property="Background" Value="#F4F8FE"/><Setter Property="Foreground" Value="#43618C"/><Setter Property="FontSize" Value="11"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Padding" Value="12,8"/><Setter Property="BorderBrush" Value="#E7EDF6"/><Setter Property="BorderThickness" Value="0,0,1,1"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/></Style>
                                 </DataGrid.ColumnHeaderStyle>
                                 <DataGrid.RowStyle>
-                                    <Style TargetType="DataGridRow"><Setter Property="Background" Value="{Binding RowBackground}"/><Setter Property="MinHeight" Value="37"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#E4EFFF"/></Trigger></Style.Triggers></Style>
+                                    <Style TargetType="DataGridRow"><Setter Property="Background" Value="{Binding RowBackground}"/><Setter Property="MinHeight" Value="37"/><Setter Property="FocusVisualStyle" Value="{x:Null}"/><Style.Triggers><Trigger Property="IsSelected" Value="True"><Setter Property="Background" Value="#E4EFFF"/></Trigger></Style.Triggers></Style>
                                 </DataGrid.RowStyle>
                                 <DataGrid.CellStyle>
-                                    <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#264166"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><ContentPresenter/></ControlTemplate></Setter.Value></Setter></Style>
+                                    <Style TargetType="DataGridCell"><Setter Property="BorderThickness" Value="0"/><Setter Property="Background" Value="Transparent"/><Setter Property="Foreground" Value="#264166"/><Setter Property="Template"><Setter.Value><ControlTemplate TargetType="DataGridCell"><ContentPresenter/></ControlTemplate></Setter.Value></Setter><Setter Property="FocusVisualStyle" Value="{x:Null}"/></Style>
                                 </DataGrid.CellStyle>
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="#" Binding="{Binding Index}" Width="40" ElementStyle="{StaticResource ValueText}"/>

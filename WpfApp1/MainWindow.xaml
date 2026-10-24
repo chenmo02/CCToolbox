@@ -93,7 +93,7 @@
 
         <!-- 右侧内容区 -->
         <Border Grid.Column="1">
-            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden"/>
+            <Frame x:Name="MainFrame" NavigationUIVisibility="Hidden" FocusVisualStyle="{x:Null}"/>
         </Border>
 
         <!-- 全局随手记入口 -->

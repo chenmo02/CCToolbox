@@ -4,9 +4,11 @@
       xmlns:svc="clr-namespace:WpfApp1.Services"
       xmlns:controls="clr-namespace:WpfApp1.Controls"
       xmlns:behaviors="clr-namespace:WpfApp1.Behaviors"
-      Background="{DynamicResource PageBackgroundAltBrush}">
+      Background="{DynamicResource PageBackgroundAltBrush}"
+      FocusVisualStyle="{x:Null}">
     <Page.Resources>
         <Style x:Key="SettingButton" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="16,10"/>
@@ -43,6 +45,7 @@
             </Setter>
         </Style>
         <Style x:Key="SqlOutputBox" TargetType="TextBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="16,14"/>

@@ -4,13 +4,15 @@
       xmlns:local="clr-namespace:WpfApp1.Views"
       xmlns:conv="clr-namespace:WpfApp1.Converters"
       Background="{DynamicResource PageBackgroundAltBrush}"
-      x:Name="PageRoot">
+      x:Name="PageRoot"
+      FocusVisualStyle="{x:Null}">
 
     <Page.Resources>
         <!-- 圆角输入框 -->
         <Style x:Key="RoundedInputBox" TargetType="TextBox" BasedOn="{StaticResource TextBoxStandard}"/>
 
         <Style x:Key="GridContextMenu" TargetType="ContextMenu">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="White"/>
             <Setter Property="BorderBrush" Value="#D8E1F0"/>
             <Setter Property="BorderThickness" Value="1"/>
@@ -35,6 +37,7 @@
         </Style>
 
         <Style x:Key="GridContextMenuItem" TargetType="MenuItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#1F2937"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Padding" Value="12,8"/>
@@ -64,6 +67,7 @@
         </Style>
 
         <Style x:Key="ValidationOptionChip" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#475569"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="Cursor" Value="Hand"/>
@@ -137,6 +141,7 @@
 
         <!-- ── DataGrid 内嵌下拉框（紧凑圆角） ──────────────────── -->
         <Style x:Key="InlineCb" TargetType="ComboBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="#111827"/>
             <Setter Property="Background" Value="Transparent"/>
@@ -189,6 +194,7 @@
             </Setter>
             <Style.Resources>
                 <Style TargetType="ComboBoxItem">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                     <Setter Property="Padding" Value="8,5"/>
                     <Setter Property="FontSize" Value="12"/>
                     <Setter Property="Foreground" Value="#374151"/>
@@ -229,6 +235,7 @@
         </Style>
 
         <Style x:Key="DashboardRuleSwitch" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Foreground" Value="#172033"/>
             <Setter Property="FontSize" Value="12.5"/>
@@ -315,6 +322,7 @@
         </Style>
 
         <Style x:Key="DebugToggleButton" TargetType="ToggleButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Foreground" Value="#64748B"/>
             <Setter Property="Background" Value="#F8FAFC"/>
@@ -381,6 +389,7 @@
             <Setter Property="Padding" Value="16"/>
         </Style>
         <Style x:Key="StructureModeRadio" TargetType="RadioButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#263D5C"/>
             <Setter Property="FontSize" Value="15"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -407,6 +416,7 @@
             </Setter>
         </Style>
         <Style x:Key="StructureEditor" TargetType="TextBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="FontFamily" Value="Consolas"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Foreground" Value="#334155"/>
@@ -492,6 +502,7 @@
             </Setter>
         </Style>
         <Style x:Key="MappingConfirmed" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="ToolTip" Value="确认 / 取消确认此映射"/>
             <Setter Property="Template">

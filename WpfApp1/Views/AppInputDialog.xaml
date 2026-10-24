@@ -14,6 +14,7 @@
         KeyDown="Window_KeyDown">
     <Window.Resources>
         <Style x:Key="DialogButtonBaseStyle" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Height" Value="32" />
             <Setter Property="MinWidth" Value="72" />
             <Setter Property="Padding" Value="12,0" />

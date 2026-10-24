@@ -47,13 +47,13 @@ namespace WpfApp1.Services
 
         public string ValueColor => NodeType switch
         {
-            "String" => "#16A34A",
-            "Number" => "#D97706",
+            "String" => "#15803D",
+            "Number" => "#C2410C",
             "True" or "False" => "#7C3AED",
             "Null" => "#9CA3AF",
             "Array" => "#2563EB",
             "Object" => "#2563EB",
-            _ => "#374151"
+            _ => "#111827"
         };
 
         public ObservableCollection<string> TableColumns { get; set; } = [];
@@ -99,11 +99,11 @@ namespace WpfApp1.Services
 
         public string ValueColor => NodeType switch
         {
-            "String" => "#16A34A",
-            "Number" => "#D97706",
+            "String" => "#15803D",
+            "Number" => "#C2410C",
             "True" or "False" => "#7C3AED",
             "Null" => "#9CA3AF",
-            _ => "#374151"
+            _ => "#111827"
         };
 
         public event PropertyChangedEventHandler? PropertyChanged;

@@ -1,7 +1,8 @@
 ﻿<Page x:Class="WpfApp1.Views.SettingsPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Background="{DynamicResource PageBackgroundBrush}">
+      Background="{DynamicResource PageBackgroundBrush}"
+      FocusVisualStyle="{x:Null}">
 
     <Page.Resources>
         <!-- 卡片标题 -->
@@ -36,6 +37,7 @@
         </Style>
 
         <Style x:Key="SqlPreferenceButton" TargetType="ToggleButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="13"/>
             <Setter Property="Padding" Value="10,8"/>

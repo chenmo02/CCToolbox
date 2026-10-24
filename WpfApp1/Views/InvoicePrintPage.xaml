@@ -1,7 +1,8 @@
 <Page x:Class="WpfApp1.Views.InvoicePrintPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-      Background="{DynamicResource PageBackgroundBrush}" AllowDrop="True" Drop="Page_Drop" DragOver="Page_DragOver">
+      Background="{DynamicResource PageBackgroundBrush}" AllowDrop="True" Drop="Page_Drop" DragOver="Page_DragOver"
+      FocusVisualStyle="{x:Null}">
 
     <Page.Resources>
         <Style x:Key="OrientationSwitch" TargetType="RadioButton">
@@ -40,6 +41,7 @@
         </Style>
         <!-- 页面特有：刷新按钮（带边框的浅蓝风格） -->
         <Style x:Key="RefreshBtn" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Padding" Value="14,0"/>
             <Setter Property="FontSize" Value="12.5"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -321,6 +323,7 @@
 
                     <!-- 添加裁剪线 -->
                     <CheckBox x:Name="ChkCutLine" Content="✂ 添加裁剪线" FontSize="13" Margin="0,0,0,14"
+                              FocusVisualStyle="{x:Null}"
                               Checked="CutLine_Changed" Unchecked="CutLine_Changed"/>
 
                     <Border Height="1" Background="#EBEBEB" Margin="0,0,0,14"/>

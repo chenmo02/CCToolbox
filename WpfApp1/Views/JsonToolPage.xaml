@@ -1,9 +1,11 @@
 ﻿<Page x:Class="WpfApp1.Views.JsonToolPage"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:controls="clr-namespace:WpfApp1.Controls"
       Background="{DynamicResource PageBackgroundAltBrush}"
       UseLayoutRounding="True" SnapsToDevicePixels="True"
-      Loaded="Page_Loaded">
+      Loaded="Page_Loaded"
+      FocusVisualStyle="{x:Null}">
 
     <Page.InputBindings>
         <KeyBinding Key="F" Modifiers="Ctrl" Command="{x:Static ApplicationCommands.Find}"/>
@@ -18,6 +20,7 @@
     <Page.Resources>
         <!-- 隐藏 TreeViewItem 默认箭头，自定义展开样式 -->
         <Style x:Key="GridTreeItemStyle" TargetType="TreeViewItem">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="IsExpanded" Value="True"/>
             <Setter Property="Padding" Value="0"/>
             <Setter Property="Margin" Value="0"/>
@@ -25,31 +28,8 @@
             <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
         </Style>
 
-        <!-- 嵌套表格的列头样式 -->
-        <Style x:Key="ColHeader" TargetType="Border">
-            <Setter Property="Background" Value="#0EA5E9"/>
-            <Setter Property="Padding" Value="10,6"/>
-            <Setter Property="Margin" Value="0,0,1,0"/>
-        </Style>
-
-        <!-- 表格单元格样式 -->
-        <Style x:Key="CellBorder" TargetType="Border">
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-            <Setter Property="Padding" Value="8,5"/>
-            <Setter Property="MinHeight" Value="30"/>
-        </Style>
-
-        <!-- 行号单元格 -->
-        <Style x:Key="RowNumBorder" TargetType="Border">
-            <Setter Property="Background" Value="#F1F5F9"/>
-            <Setter Property="BorderBrush" Value="#E5E7EB"/>
-            <Setter Property="BorderThickness" Value="0,0,1,1"/>
-            <Setter Property="Padding" Value="6,5"/>
-            <Setter Property="MinWidth" Value="30"/>
-        </Style>
-
         <Style x:Key="CompactSearchTextBox" TargetType="TextBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="FontSize" Value="12"/>
             <Setter Property="Padding" Value="8,0"/>
             <Setter Property="MinHeight" Value="34"/>
@@ -181,6 +161,7 @@
                                       KeyDown="TxtSearchKeyword_KeyDown"/>
                              <CheckBox x:Name="ChkSearchCaseSensitive"
                                        Content="Aa"
+                                       FocusVisualStyle="{x:Null}"
                                        Margin="8,0,0,0"
                                        VerticalAlignment="Center"
                                        Foreground="#92400E"
@@ -190,17 +171,20 @@
                          </DockPanel>
                      </Border>
 
-                    <!-- JSON 编辑器 -->
-                    <TextBox x:Name="TxtJsonEditor"
-                             AcceptsReturn="True" AcceptsTab="True"
-                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
-                             TextWrapping="Wrap"
-                             IsInactiveSelectionHighlightEnabled="True"
-                             SelectionBrush="#FDE68A" SelectionOpacity="0.45"
-                             FontSize="13" FontFamily="Consolas, 'Courier New'"
-                             Background="#1E293B" Foreground="#A5F3FC" CaretBrush="#F59E0B"
-                             Padding="12,8" BorderThickness="0"
-                             TextChanged="TxtJsonEditor_TextChanged"/>
+                    <!-- JSON 编辑器：语法着色层覆盖在原生 TextBox 之上，光标/选区/滚动保持原生行为 -->
+                    <Grid ClipToBounds="True">
+                        <TextBox x:Name="TxtJsonEditor"
+                                 AcceptsReturn="True" AcceptsTab="True"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                                 TextWrapping="Wrap"
+                                 IsInactiveSelectionHighlightEnabled="True"
+                                 SelectionBrush="#264F78" SelectionOpacity="0.85"
+                                 FontSize="13" FontFamily="Consolas, 'Courier New'"
+                                 Background="#1E293B" Foreground="Transparent" CaretBrush="#F59E0B"
+                                 Padding="12,8" BorderThickness="0"
+                                 TextChanged="TxtJsonEditor_TextChanged"/>
+                        <controls:JsonSyntaxLayer Editor="{Binding ElementName=TxtJsonEditor}"/>
+                    </Grid>
                 </DockPanel>
             </Border>
 
@@ -258,6 +242,7 @@
                                      KeyDown="TxtGridSearchKeyword_KeyDown"/>
                             <CheckBox x:Name="ChkGridSearchCaseSensitive"
                                       Content="Aa"
+                                      FocusVisualStyle="{x:Null}"
                                       Margin="8,0,0,0"
                                       VerticalAlignment="Center"
                                       Foreground="#5B21B6"

@@ -3,7 +3,8 @@
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       Background="{DynamicResource PageBackgroundAltBrush}" Foreground="#102552"
       UseLayoutRounding="True" SnapsToDevicePixels="True"
-      AllowDrop="True" DragEnter="Page_DragEnter" DragOver="Page_DragEnter" Drop="Page_Drop">
+      AllowDrop="True" DragEnter="Page_DragEnter" DragOver="Page_DragEnter" Drop="Page_Drop"
+      FocusVisualStyle="{x:Null}">
 
     <Page.Resources>
         <SolidColorBrush x:Key="InputHoverBorderBrush" Color="#A9C4FF"/>
@@ -39,6 +40,7 @@
             <Setter Property="Background" Value="{DynamicResource PrimaryBrush}"/>
         </Style>
         <Style x:Key="PreviewHeader" TargetType="DataGridColumnHeader">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="#EAF3FF"/>
             <Setter Property="Foreground" Value="#304C76"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
@@ -48,6 +50,7 @@
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
         </Style>
         <Style x:Key="PreviewCell" TargetType="DataGridCell">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#314875"/>
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderBrush" Value="Transparent"/>
@@ -73,6 +76,7 @@
         </Style>
         <!-- 独立行样式，避免全局固定行高覆盖预览表格的紧凑行高。 -->
         <Style x:Key="PreviewRow" TargetType="DataGridRow">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Height" Value="28"/>
             <Setter Property="SnapsToDevicePixels" Value="True"/>
         </Style>

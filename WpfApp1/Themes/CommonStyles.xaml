@@ -2,8 +2,71 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:behaviors="clr-namespace:WpfApp1.Behaviors">
 
+    <!-- ==================== 全局关闭焦点虚线框 ====================
+         WPF 默认的 FocusVisualStyle 是一圈 1px 黑色点线（StrokeDashArray="1 1"），
+         只在「键盘线索可见」时绘制：鼠标点完不画，随后一按键就冒出来，焦点移走又消失，
+         所以看起来像「有时候莫名出现一个虚线框」。
+         触发点通常是容器类控件：ScrollViewer 可聚焦，点内容空白区就会把焦点交给整块区域。
+         这里给各类可聚焦控件补上隐式样式统一置空（有 x:Key 的样式在上面单独加过）。
+         注意：DataGrid / ScrollBar 已有自己的隐式样式，分别在 DataGridStyles、ScrollBarStyles 里维护。 -->
+    <Style TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ToggleButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="RadioButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="CheckBox">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="TextBox">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="PasswordBox">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ComboBox">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ComboBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ListBox">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ListBoxItem">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="TreeViewItem">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="MenuItem">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="ScrollViewer">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="GridSplitter">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <Style TargetType="RepeatButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <!-- Frame 是所有页面共用的宿主，页面切换时焦点会落到它身上，
+         一旦有焦点视觉就会框住整个右侧内容区（这也是「每个页面都有一圈大框」的来源）。 -->
+    <Style TargetType="Frame">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+    </Style>
+    <!-- 各页面在 Page_Loaded 里都做了 Focusable=true + Focus()（为了 Ctrl+F / Esc 快捷键），
+         而 Page 不是 Control、拿不到隐式样式，焦点视觉来自 FrameworkElement 的默认值，
+         焦点落在页面上时框住的正好是整块右侧内容区 —— 这是「每个页面右侧整体都有框」的主因。
+         所以每个 <Page> 根节点上都直接写了 FocusVisualStyle="{x:Null}"（本地值才压得住默认值）。 -->
+
     <!-- 页面 ScrollViewer -->
     <Style x:Key="PageScrollViewerStyle" TargetType="ScrollViewer">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="VerticalScrollBarVisibility" Value="Auto"/>
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled"/>
         <Setter Property="CanContentScroll" Value="False"/>
@@ -13,6 +76,7 @@
 
     <!-- 侧边栏导航按钮 -->
     <Style x:Key="NavButtonStyle" TargetType="RadioButton">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RadioButton">

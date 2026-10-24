@@ -4,7 +4,8 @@
       Background="{DynamicResource PageBackgroundAltBrush}"
       UseLayoutRounding="True"
       SnapsToDevicePixels="True"
-      SizeChanged="Page_SizeChanged">
+      SizeChanged="Page_SizeChanged"
+      FocusVisualStyle="{x:Null}">
     <Page.Resources>
 
         <!-- 卡片 -->
@@ -38,6 +39,7 @@
         </ControlTemplate>
 
         <Style x:Key="PrimaryButton" TargetType="Button">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="White" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -70,6 +72,7 @@
 
         <!-- 对比模式 RadioButton -->
         <Style x:Key="ModeRadio" TargetType="RadioButton">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Foreground" Value="#64748B" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Padding" Value="14,7" />
@@ -105,6 +108,7 @@
 
         <!-- 主键列 CheckBox（竖向列表项样式） -->
         <Style x:Key="KeyColumnCheckBox" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Margin" Value="0,0,0,2" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
@@ -146,6 +150,7 @@
 
         <!-- 筛选 CheckBox（胶囊标签） -->
         <Style x:Key="FilterChip" TargetType="CheckBox">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="Margin" Value="0,0,8,0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -182,6 +187,7 @@
             <!-- 下拉项隐式样式（必须放在 Setter 之前） -->
             <Style.Resources>
                 <Style TargetType="ComboBoxItem">
+                    <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                     <Setter Property="FontSize" Value="12" />
                     <Setter Property="Foreground" Value="#374151" />
                     <Setter Property="Padding" Value="12,7" />
@@ -298,6 +304,7 @@
 
         <!-- ═══ DataGrid 样式 ═══ -->
         <Style x:Key="ResultDataGrid" TargetType="DataGrid">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#E2E8F0" />
             <Setter Property="BorderThickness" Value="1" />
@@ -324,6 +331,7 @@
 
         <!-- 列表头 -->
         <Style x:Key="ResultDataGridHeader" TargetType="DataGridColumnHeader">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="#F4F7FB" />
             <Setter Property="Foreground" Value="#374151" />
             <Setter Property="FontWeight" Value="SemiBold" />
@@ -370,6 +378,7 @@
 
         <!-- 行 -->
         <Style x:Key="ResultDataGridRow" TargetType="DataGridRow">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="White" />
             <Setter Property="Foreground" Value="#1E293B" />
             <Setter Property="MinHeight" Value="38" />
@@ -416,6 +425,7 @@
 
         <!-- 行号表头样式 -->
         <Style x:Key="SummaryRowHeader" TargetType="DataGridRowHeader">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Background" Value="#F4F7FB" />
             <Setter Property="Foreground" Value="#94A3B8" />
             <Setter Property="FontSize" Value="10" />

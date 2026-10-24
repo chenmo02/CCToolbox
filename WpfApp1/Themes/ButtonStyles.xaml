@@ -5,6 +5,7 @@
 
     <!-- 主按钮：蓝色实心 -->
     <Style x:Key="ButtonPrimary" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Padding" Value="18,9"/>
@@ -55,6 +56,7 @@
 
     <!-- 紧凑型工具按钮：用于工具栏等紧凑场景 -->
     <Style x:Key="ButtonSmall" TargetType="Button">
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template">

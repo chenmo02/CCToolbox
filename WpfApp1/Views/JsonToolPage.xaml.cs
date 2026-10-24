@@ -9,9 +9,11 @@ using System.Text.Json.Nodes;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using WpfApp1.Controls;
 using WpfApp1.Services;
 
 namespace WpfApp1.Views
@@ -22,12 +24,23 @@ namespace WpfApp1.Views
         private readonly DispatcherTimer _searchDebounceTimer = new();
         private readonly DispatcherTimer _gridSearchDebounceTimer = new();
         private static readonly Brush BorderColor = MakeBrush("#E5E7EB");
-        private static readonly Brush HeaderBg = MakeBrush("#0EA5E9");
-        private static readonly Brush HeaderBorderColor = MakeBrush("#0284C7");
-        private static readonly Brush RowNumBg = MakeBrush("#F1F5F9");
-        private static readonly Brush EvenRowBg = MakeBrush("#FFFDE7");
+        private static readonly Brush RowLineColor = MakeBrush("#F1F5F9");
+        private static readonly Brush HeaderBg = MakeBrush("#F3F4F6");
+        private static readonly Brush HeaderFg = MakeBrush("#6B7280");
+        private static readonly Brush HeaderBorderColor = MakeBrush("#E5E7EB");
+        private static readonly Brush RowNumBg = Brushes.Transparent;
+        private static readonly Brush RowNumFg = MakeBrush("#CBD5E1");
+        private static readonly Brush EvenRowBg = MakeBrush("#FAFAFA");
+        private static readonly Brush HoverRowBg = MakeBrush("#EFF6FF");
+        private static readonly Brush NestedGuideColor = MakeBrush("#DBEAFE");
         private static readonly Brush LinkColor = MakeBrush("#2563EB");
-        private static readonly Brush KeyColor = MakeBrush("#374151");
+        private static readonly Brush KeyColor = MakeBrush("#6B7280");
+        private static readonly Brush ChipBg = MakeBrush("#ECFDF5");
+        private static readonly Brush ChipFg = MakeBrush("#047857");
+        private static readonly FontFamily MonoFont = new("Consolas, Cascadia Mono, Courier New");
+        private const double IndexColumnWidth = 36;
+        private const double TableCornerRadius = 8;
+        private const int MaxChipItems = 24;
         private static readonly Brush HighlightBg = MakeBrush("#FBBF24");
         private static readonly Brush HighlightFg = MakeBrush("#1E293B");
         private static readonly Brush CurrentHighlightBg = MakeBrush("#F97316");
@@ -37,10 +50,10 @@ namespace WpfApp1.Views
         private static readonly Brush GridSearchCurrentBg = MakeBrush("#7C3AED");
         private static readonly Brush GridSearchCurrentFg = Brushes.White;
         private static readonly Brush ClickHighlightBg = MakeBrush("#34D399");
-        private static readonly Brush SummaryBg = MakeBrush("#EFF6FF");
-        private static readonly Brush SummaryAccentBg = MakeBrush("#DBEAFE");
-        private static readonly Brush SummaryTextColor = MakeBrush("#1D4ED8");
-        private static readonly Brush EditorBorderBrush = MakeBrush("#93C5FD");
+        private static readonly Brush SummaryBg = MakeBrush("#F9FAFB");
+        private static readonly Brush SummaryAccentBg = MakeBrush("#F3F4F6");
+        private static readonly Brush SummaryTextColor = MakeBrush("#6B7280");
+        private static readonly Brush EditorBorderBrush = MakeBrush("#E5E7EB");
 
         // 左侧搜索
         private List<int> _searchMatches = new();
@@ -71,8 +84,8 @@ namespace WpfApp1.Views
 
         // GRID 节点追踪
         private ObservableCollection<JsonGridNode>? _currentNodes;
-        private readonly Dictionary<string, (TextBlock header, FrameworkElement content, JsonGridNode node, bool isTable)> _gridSections = new();
-        private readonly Dictionary<string, (TextBlock header, StackPanel content, Action render)> _nestedGridSections = new();
+        private readonly Dictionary<string, (GridToggleHeader header, FrameworkElement content, JsonGridNode node, bool isTable)> _gridSections = new();
+        private readonly Dictionary<string, (GridToggleHeader header, StackPanel content, Action render)> _nestedGridSections = new();
 
         // 右侧 GRID 搜索
         private List<TextBlock> _gridSearchMatches = new();
@@ -860,7 +873,7 @@ namespace WpfApp1.Views
                 if (highlightedCount >= MaxGridSearchMatches) break;
                 if (string.IsNullOrEmpty(tb.Text)) continue;
                 if (!IsTextBlockVisible(tb)) continue;
-                if (!ContainsKeyword(tb.Text, keyword, comparison)) continue;
+                if (!ContainsKeyword(GetSearchableText(tb), keyword, comparison)) continue;
 
                 _linkedGridHighlighted.Add((tb, tb.Background));
                 tb.Background = NodeHighlightBg;
@@ -905,6 +918,10 @@ namespace WpfApp1.Views
         private static bool ContainsKeyword(string? text, string keyword, StringComparison comparison)
             => !string.IsNullOrEmpty(text) && text.Contains(keyword, comparison);
 
+        /// <summary>表头显示大写时，搜索仍按 Tag 中的原始键名匹配。</summary>
+        private static string GetSearchableText(TextBlock textBlock)
+            => textBlock.Tag as string ?? textBlock.Text;
+
         private void ExpandMatchingGridSections(string keyword, StringComparison comparison, int maxTotalExpand)
         {
             int totalExpanded = 0;
@@ -934,16 +951,16 @@ namespace WpfApp1.Views
             while (expandedInPass && totalExpanded < maxTotalExpand);
         }
 
-        private void ExpandGridSection(TextBlock header, FrameworkElement content, JsonGridNode node)
+        private void ExpandGridSection(GridToggleHeader header, FrameworkElement content, JsonGridNode node)
         {
             content.Visibility = Visibility.Visible;
-            header.Text = header.Text.Replace("[+]", "[-]");
+            header.SetExpanded(true);
 
             if (content is StackPanel stackPanel && stackPanel.Children.Count == 0)
             {
                 if (node.HasTable)
                 {
-                    RenderTable(node, stackPanel, 0);
+                    RenderTableContent(node, stackPanel, 0, false);
                 }
                 else if (node.IsContainer)
                 {
@@ -955,10 +972,10 @@ namespace WpfApp1.Views
             }
         }
 
-        private static void ExpandNestedGridSection(TextBlock header, StackPanel content, Action render)
+        private static void ExpandNestedGridSection(GridToggleHeader header, StackPanel content, Action render)
         {
             content.Visibility = Visibility.Visible;
-            header.Text = header.Text.Replace("[+]", "[-]");
+            header.SetExpanded(true);
 
             if (content.Children.Count == 0)
             {
@@ -1337,7 +1354,7 @@ namespace WpfApp1.Views
                 if (token.IsCancellationRequested) return;
                 if (matchCount >= MaxGridSearchMatches) break;
                 if (string.IsNullOrEmpty(tb.Text)) continue;
-                if (!ContainsKeyword(tb.Text, keyword, comparison)) continue;
+                if (!ContainsKeyword(GetSearchableText(tb), keyword, comparison)) continue;
                 if (!IsTextBlockVisible(tb)) continue;
 
                 _gridSearchMatches.Add(tb);
@@ -1455,10 +1472,10 @@ namespace WpfApp1.Views
             foreach (var kvp in _gridSections.ToList())
             {
                 var (header, _, _, _) = kvp.Value;
-                if (header.Background == NodeHighlightBg)
+                if (header.Label.Background == NodeHighlightBg)
                 {
-                    header.Background = Brushes.Transparent;
-                    header.FontWeight = FontWeights.SemiBold;
+                    header.Label.Background = Brushes.Transparent;
+                    header.Label.FontWeight = FontWeights.SemiBold;
                 }
             }
         }
@@ -1814,30 +1831,18 @@ namespace WpfApp1.Views
 
         private void RenderCollapsibleObject(JsonGridNode node, Panel container, int depth)
         {
-            string collapsedLabel = node.ExpandLabel.Replace("[-]", "[+]");
-            string expandedLabel = node.ExpandLabel;
-
-            var headerText = new TextBlock
-            {
-                Text = collapsedLabel,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = MakeBrush("#1E40AF"),
-                FontSize = 13,
-                Margin = new Thickness(depth * 20, 6, 0, 3),
-                Cursor = Cursors.Hand
-            };
+            var header = new GridToggleHeader(GetSectionTitle(node), GetSectionCountText(node), depth * 20);
 
             var contentPanel = new StackPanel { Visibility = Visibility.Collapsed };
             string sectionKey = GetSectionStateKey(false, node);
-            _gridSections[sectionKey] = (headerText, contentPanel, node, false);
-            _allGridValueTextBlocks.Add(headerText);
+            _gridSections[sectionKey] = (header, contentPanel, node, false);
 
-            headerText.MouseLeftButtonUp += (s, e) =>
+            header.MouseLeftButtonUp += (s, e) =>
             {
                 if (contentPanel.Visibility == Visibility.Collapsed)
                 {
                     contentPanel.Visibility = Visibility.Visible;
-                    headerText.Text = expandedLabel;
+                    header.SetExpanded(true);
                     if (contentPanel.Children.Count == 0)
                         foreach (var child in node.Children)
                             RenderNode(child, contentPanel, depth + 1);
@@ -1845,56 +1850,77 @@ namespace WpfApp1.Views
                 else
                 {
                     contentPanel.Visibility = Visibility.Collapsed;
-                    headerText.Text = collapsedLabel;
+                    header.SetExpanded(false);
                 }
                 e.Handled = true;
             };
 
-            container.Children.Add(headerText);
+            container.Children.Add(header);
             container.Children.Add(contentPanel);
         }
 
         private void RenderCollapsibleTable(JsonGridNode node, Panel container, int depth)
         {
-            string collapsedLabel = node.ExpandLabel.Replace("[-]", "[+]");
-            string expandedLabel = node.ExpandLabel;
-            string displayLabel = node.Key == "root" ? "[+] 数据表格" : collapsedLabel;
-            string displayExpandedLabel = node.Key == "root" ? "[-] 数据表格" : expandedLabel;
-
-            var headerText = new TextBlock
-            {
-                Text = displayLabel,
-                FontWeight = FontWeights.SemiBold,
-                Foreground = MakeBrush("#1E40AF"),
-                FontSize = 13,
-                Margin = new Thickness(depth * 20, 6, 0, 3),
-                Cursor = Cursors.Hand
-            };
+            var header = new GridToggleHeader(GetSectionTitle(node), GetSectionCountText(node), depth * 20);
 
             var contentPanel = new StackPanel { Visibility = Visibility.Collapsed };
             string sectionKey = GetSectionStateKey(true, node);
-            _gridSections[sectionKey] = (headerText, contentPanel, node, true);
-            _allGridValueTextBlocks.Add(headerText);
+            _gridSections[sectionKey] = (header, contentPanel, node, true);
 
-            headerText.MouseLeftButtonUp += (s, e) =>
+            header.MouseLeftButtonUp += (s, e) =>
             {
                 if (contentPanel.Visibility == Visibility.Collapsed)
                 {
                     contentPanel.Visibility = Visibility.Visible;
-                    headerText.Text = displayExpandedLabel;
+                    header.SetExpanded(true);
                     if (contentPanel.Children.Count == 0)
-                        RenderTable(node, contentPanel, depth);
+                        RenderTableContent(node, contentPanel, depth, false);
                 }
                 else
                 {
                     contentPanel.Visibility = Visibility.Collapsed;
-                    headerText.Text = displayLabel;
+                    header.SetExpanded(false);
                 }
                 e.Handled = true;
             };
 
-            container.Children.Add(headerText);
+            container.Children.Add(header);
             container.Children.Add(contentPanel);
+        }
+
+        private static string GetSectionTitle(JsonGridNode node)
+            => node.Key == "root" ? "数据表格" : node.Key;
+
+        private static string GetSectionCountText(JsonGridNode node)
+        {
+            if (node.NodeType == "Array")
+            {
+                int count = node.IsObjectArray || node.IsSimpleArray ? node.DisplayTableRowCount : node.Children.Count;
+                return count.ToString();
+            }
+
+            if (node.NodeType == "Object")
+                return $"{node.Children.Count} 项";
+
+            return "";
+        }
+
+        private static string GetCellToggleTitle(JsonGridCell cell)
+            => string.IsNullOrEmpty(cell.ColumnName) ? "详情" : cell.ColumnName;
+
+        private static string GetCellToggleCountText(JsonGridCell cell)
+        {
+            var nested = cell.NestedChildren.FirstOrDefault();
+            if (nested == null)
+                return "";
+
+            if (nested.NodeType == "Array")
+            {
+                int count = nested.IsObjectArray || nested.IsSimpleArray ? nested.DisplayTableRowCount : nested.Children.Count;
+                return count.ToString();
+            }
+
+            return $"{nested.Children.Count} 项";
         }
 
         // ==================== 全部展开 / 全部折叠 ====================
@@ -1948,14 +1974,14 @@ namespace WpfApp1.Views
             foreach (var section in _nestedGridSections.Values.ToList())
             {
                 section.content.Visibility = Visibility.Collapsed;
-                section.header.Text = section.header.Text.Replace("[-]", "[+]");
+                section.header.SetExpanded(false, false);
             }
 
             foreach (var kvp in _gridSections.ToList())
             {
                 var (header, content, _, _) = kvp.Value;
                 content.Visibility = Visibility.Collapsed;
-                header.Text = header.Text.Replace("[-]", "[+]");
+                header.SetExpanded(false, false);
             }
             SetStatus("📁 已全部折叠");
         }
@@ -1965,12 +1991,12 @@ namespace WpfApp1.Views
         private void RenderLeafNode(JsonGridNode node, Panel container, int depth)
         {
             var row = new Grid { Margin = new Thickness(depth * 20, 0, 0, 0) };
-            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(160) });
+            row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(140) });
             row.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
             var keyTextBlock = new TextBlock
             {
-                Text = node.Key, FontWeight = FontWeights.SemiBold,
+                Text = node.Key, FontWeight = FontWeights.Normal,
                 Foreground = KeyColor, FontSize = 13,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Center,
@@ -1987,9 +2013,9 @@ namespace WpfApp1.Views
 
             var keyBorder = new Border
             {
-                BorderBrush = BorderColor,
+                BorderBrush = RowLineColor,
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                Padding = new Thickness(6, 4, 6, 4),
+                Padding = new Thickness(0, 5, 16, 5),
                 Child = keyTextBlock
             };
             Grid.SetColumn(keyBorder, 0);
@@ -1999,12 +2025,15 @@ namespace WpfApp1.Views
             {
                 Text = node.Value,
                 Foreground = MakeBrush(node.ValueColor),
+                FontFamily = MonoFont,
                 FontSize = 13,
+                FontStyle = node.NodeType == "Null" ? FontStyles.Italic : FontStyles.Normal,
                 TextWrapping = TextWrapping.Wrap,
                 VerticalAlignment = VerticalAlignment.Center,
                 Cursor = Cursors.Hand,
                 ToolTip = "点击定位到左侧 JSON"
             };
+            Typography.SetNumeralAlignment(valTextBlock, FontNumeralAlignment.Tabular);
             string capturedValue = node.Value;
             valTextBlock.MouseLeftButtonUp += (s, e) =>
             {
@@ -2015,19 +2044,20 @@ namespace WpfApp1.Views
 
             var valBorder = new Border
             {
-                BorderBrush = BorderColor,
+                BorderBrush = RowLineColor,
                 BorderThickness = new Thickness(0, 0, 0, 1),
-                Padding = new Thickness(10, 4, 6, 4),
+                Padding = new Thickness(0, 5, 6, 5),
                 Child = valTextBlock
             };
             Grid.SetColumn(valBorder, 1);
             row.Children.Add(valBorder);
 
-            // 横向滚动仍供多列表格使用，字段行限制在可视宽度内以触发换行。
-            var rowHost = new Border { Child = row };
-            rowHost.SetBinding(FrameworkElement.MaxWidthProperty, new System.Windows.Data.Binding("ViewportWidth")
+            // 横向滚动仍供多列表格使用，字段行按可视宽度铺满，分隔线不会长短不一。
+            var rowHost = new Border { Child = row, HorizontalAlignment = HorizontalAlignment.Left };
+            rowHost.SetBinding(FrameworkElement.WidthProperty, new System.Windows.Data.Binding("ViewportWidth")
             {
-                Source = GridScrollViewer
+                Source = GridScrollViewer,
+                Converter = ViewportWidthConverter.Instance
             });
             container.Children.Add(rowHost);
         }
@@ -2046,140 +2076,79 @@ namespace WpfApp1.Views
 
         // ==================== 表格渲染 ====================
 
-        private void RenderTable_Legacy(JsonGridNode node, Panel container, int depth)
+        private void RenderTableContent(JsonGridNode node, Panel container, int depth, bool isNested)
         {
-            if (node.TableColumns.Count == 0 || node.TableRows.Count == 0) return;
-
-            var tableBorder = new Border
+            if (CanRenderAsChips(node))
             {
-                BorderBrush = MakeBrush("#CBD5E1"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(4),
-                Margin = new Thickness(depth * 20, 2, 4, 8),
-                HorizontalAlignment = HorizontalAlignment.Left
-            };
-
-            var tableGrid = new Grid();
-            tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
-            foreach (var _ in node.TableColumns)
-                tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 100 });
-            tableGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-            foreach (var _ in node.TableRows)
-                tableGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
-
-            var menuBtn = CreateHeaderCell("···");
-            menuBtn.Cursor = Cursors.Hand;
-            menuBtn.MouseLeftButtonUp += (s, e) => ExportNodeToCsv(node);
-            menuBtn.ToolTip = "导出此表格为 CSV";
-            Grid.SetRow(menuBtn, 0); Grid.SetColumn(menuBtn, 0);
-            tableGrid.Children.Add(menuBtn);
-
-            for (int c = 0; c < node.TableColumns.Count; c++)
-            {
-                var headerCell = CreateHeaderCell(node.TableColumns[c]);
-                Grid.SetRow(headerCell, 0); Grid.SetColumn(headerCell, c + 1);
-                tableGrid.Children.Add(headerCell);
-
-                // 注册表头列名 TextBlock 到搜索列表
-                if (headerCell.Child is TextBlock headerTb)
-                    _allGridValueTextBlocks.Add(headerTb);
+                container.Children.Add(CreateChipsPanel(node, isNested ? 0 : depth, isNested));
+                return;
             }
 
-            for (int r = 0; r < node.TableRows.Count; r++)
-            {
-                var row = node.TableRows[r];
-                int gridRow = r + 1;
-
-                var rowNum = new Border
-                {
-                    Background = RowNumBg, BorderBrush = BorderColor,
-                    BorderThickness = new Thickness(0, 0, 1, 1),
-                    Padding = new Thickness(8, 4, 8, 4),
-                    Child = new TextBlock { Text = row.Index.ToString(), Foreground = Brushes.Gray, FontSize = 12, HorizontalAlignment = HorizontalAlignment.Center }
-                };
-                Grid.SetRow(rowNum, gridRow); Grid.SetColumn(rowNum, 0);
-                tableGrid.Children.Add(rowNum);
-
-                for (int c = 0; c < row.Cells.Count; c++)
-                {
-                    var cell = row.Cells[c];
-                    var cellBorder = new Border
-                    {
-                        BorderBrush = BorderColor,
-                        BorderThickness = new Thickness(0, 0, 1, 1),
-                        Padding = new Thickness(8, 4, 8, 4),
-                        MinWidth = 100
-                    };
-                    if (r % 2 == 0) cellBorder.Background = EvenRowBg;
-
-                    if (cell.IsNested)
-                    {
-                        var nestedPanel = new StackPanel();
-                        var summaryBtn = new TextBlock
-                        {
-                            Text = cell.NestedSummary,
-                            Foreground = LinkColor,
-                            FontWeight = FontWeights.SemiBold,
-                            FontSize = 12,
-                            Cursor = Cursors.Hand
-                        };
-                        var nestedContainer = new StackPanel { Visibility = Visibility.Collapsed };
-                        Action renderNested = () =>
-                        {
-                            foreach (var nested in cell.NestedChildren)
-                                RenderNestedContent(nested, nestedContainer);
-                        };
-                        _nestedGridSections[cell.JsonPath] = (summaryBtn, nestedContainer, renderNested);
-                        summaryBtn.MouseLeftButtonUp += (s, e) =>
-                        {
-                            if (nestedContainer.Visibility == Visibility.Collapsed)
-                            {
-                                ExpandNestedGridSection(summaryBtn, nestedContainer, renderNested);
-                            }
-                            else
-                            {
-                                nestedContainer.Visibility = Visibility.Collapsed;
-                                summaryBtn.Text = summaryBtn.Text.Replace("[-]", "[+]");
-                            }
-                            e.Handled = true;
-                        };
-                        nestedPanel.Children.Add(summaryBtn);
-                        nestedPanel.Children.Add(nestedContainer);
-                        cellBorder.Child = nestedPanel;
-                    }
-                    else
-                    {
-                        var valTb = new TextBlock
-                        {
-                            Text = cell.Value,
-                            Foreground = MakeBrush(cell.ValueColor),
-                            FontSize = 12,
-                            VerticalAlignment = VerticalAlignment.Center,
-                            TextTrimming = TextTrimming.CharacterEllipsis,
-                            MaxWidth = 280,
-                            Cursor = Cursors.Hand,
-                            ToolTip = "点击定位到左侧 JSON"
-                        };
-                        string cellValue = cell.Value;
-                        valTb.MouseLeftButtonUp += (s, e) =>
-                        {
-                            OnGridValueClicked(cellValue, cell.JsonPath);
-                            e.Handled = true;
-                        };
-                        _allGridValueTextBlocks.Add(valTb);
-                        cellBorder.Child = valTb;
-                    }
-
-                    Grid.SetRow(cellBorder, gridRow); Grid.SetColumn(cellBorder, c + 1);
-                    tableGrid.Children.Add(cellBorder);
-                }
-            }
-
-            tableBorder.Child = tableGrid;
-            container.Children.Add(tableBorder);
+            RenderTable(node, container, depth, isNested);
         }
 
-        private void RenderTable(JsonGridNode node, Panel container, int depth)
+        /// <summary>短小的原始值数组用标签展示（对应设计稿的 .chips）。</summary>
+        private bool CanRenderAsChips(JsonGridNode node)
+        {
+            if (!node.IsSimpleArray || _isGridEditMode)
+                return false;
+
+            if (node.TableRows.Count == 0 || node.TableRows.Count > MaxChipItems)
+                return false;
+
+            return node.TableRows.All(row => row.Cells.Count > 0 && !row.Cells[0].IsNested);
+        }
+
+        private FrameworkElement CreateChipsPanel(JsonGridNode node, int depth, bool isNested)
+        {
+            var chips = new WrapPanel
+            {
+                Margin = new Thickness(depth * 20, 3, 4, 6),
+                HorizontalAlignment = HorizontalAlignment.Left,
+                MaxWidth = isNested ? 280 : 720
+            };
+
+            foreach (var row in node.TableRows)
+            {
+                var cell = row.Cells[0];
+                var chipText = new TextBlock
+                {
+                    Text = cell.Value,
+                    Foreground = ChipFg,
+                    FontFamily = MonoFont,
+                    FontSize = 12,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    TextTrimming = TextTrimming.CharacterEllipsis,
+                    MaxWidth = 220
+                };
+                Typography.SetNumeralAlignment(chipText, FontNumeralAlignment.Tabular);
+                _allGridValueTextBlocks.Add(chipText);
+
+                var chip = new Border
+                {
+                    Background = ChipBg,
+                    CornerRadius = new CornerRadius(10),
+                    Padding = new Thickness(10, 2, 10, 3),
+                    Margin = new Thickness(0, 0, 6, 6),
+                    Cursor = Cursors.Hand,
+                    ToolTip = "点击定位到左侧 JSON",
+                    Child = chipText
+                };
+
+                string capturedValue = cell.Value;
+                chip.MouseLeftButtonUp += (s, e) =>
+                {
+                    OnGridValueClicked(capturedValue, cell.JsonPath);
+                    e.Handled = true;
+                };
+
+                chips.Children.Add(chip);
+            }
+
+            return chips;
+        }
+
+        private void RenderTable(JsonGridNode node, Panel container, int depth, bool isNested = false)
         {
             if (node.TableColumns.Count == 0 || node.TableRows.Count == 0) return;
             var (rowsToRender, columnsToRender) = GetTablePreviewSize(node);
@@ -2187,26 +2156,31 @@ namespace WpfApp1.Views
 
             var tableHost = new StackPanel
             {
-                Margin = new Thickness(depth * 20, 2, 4, 8),
+                Margin = isNested ? new Thickness(6, 2, 0, 2) : new Thickness(depth * 20, 2, 4, 8),
                 HorizontalAlignment = HorizontalAlignment.Left
             };
 
-            if (_isGridEditMode)
+            if (_isGridEditMode && !isNested)
                 tableHost.Children.Add(CreateEditModeBanner());
 
             bool[] summableColumns = Array.Empty<bool>();
             bool hasSummaryRow = false;
 
+            // 外层圆角细边框；嵌套表格改为左侧引导线，不再套整框
             var tableBorder = new Border
             {
-                BorderBrush = MakeBrush("#CBD5E1"),
-                BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(6),
-                Background = Brushes.White
+                BorderBrush = isNested ? NestedGuideColor : BorderColor,
+                BorderThickness = isNested ? new Thickness(2, 0, 0, 0) : new Thickness(1),
+                CornerRadius = isNested ? new CornerRadius(0) : new CornerRadius(TableCornerRadius),
+                Background = Brushes.White,
+                SnapsToDevicePixels = true
             };
 
-            var tableGrid = new Grid();
-            tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+            var tableGrid = new Grid { Background = Brushes.White };
+            // 单元格是直角的，必须按圆角裁剪内容，否则四个角会被方格背景盖出白色缺口
+            if (!isNested)
+                ApplyRoundedClip(tableGrid, TableCornerRadius - 1);
+            tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(IndexColumnWidth) });
             for (int i = 0; i < columnsToRender; i++)
                 tableGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto, MinWidth = 100 });
             tableGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
@@ -2215,9 +2189,9 @@ namespace WpfApp1.Views
             if (hasSummaryRow)
                 tableGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            var menuBtn = CreateHeaderCell("···");
+            var menuBtn = CreateHeaderCell("···", isNested);
             menuBtn.Cursor = Cursors.Hand;
-            menuBtn.MouseLeftButtonUp += (s, e) => ExportNodeToCsv(node);
+            menuBtn.MouseLeftButtonUp += (s, e) => { ExportNodeToCsv(node); e.Handled = true; };
             menuBtn.ToolTip = "导出此表格为 CSV";
             Grid.SetRow(menuBtn, 0);
             Grid.SetColumn(menuBtn, 0);
@@ -2225,7 +2199,7 @@ namespace WpfApp1.Views
 
             for (int c = 0; c < columnsToRender; c++)
             {
-                var headerCell = CreateHeaderCell(node.TableColumns[c]);
+                var headerCell = CreateHeaderCell(node.TableColumns[c], isNested);
                 Grid.SetRow(headerCell, 0);
                 Grid.SetColumn(headerCell, c + 1);
                 tableGrid.Children.Add(headerCell);
@@ -2241,24 +2215,29 @@ namespace WpfApp1.Views
             {
                 var row = node.TableRows[r];
                 int gridRow = r + 1;
+                bool isLastRow = r == rowsToRender - 1 && !hasSummaryRow;
+                Brush rowBackground = r % 2 == 0 ? EvenRowBg : Brushes.White;
+                var rowCells = new List<Border>();
 
                 var rowNum = new Border
                 {
                     Background = RowNumBg,
-                    BorderBrush = BorderColor,
-                    BorderThickness = new Thickness(0, 0, 1, 1),
-                    Padding = new Thickness(8, 4, 8, 4),
+                    BorderBrush = RowLineColor,
+                    BorderThickness = new Thickness(0, 0, 0, isLastRow ? 0 : 1),
+                    Padding = new Thickness(0, 6, 0, 6),
                     Child = new TextBlock
                     {
                         Text = row.Index.ToString(),
-                        Foreground = Brushes.Gray,
+                        Foreground = RowNumFg,
                         FontSize = 12,
-                        HorizontalAlignment = HorizontalAlignment.Center
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Top
                     }
                 };
                 Grid.SetRow(rowNum, gridRow);
                 Grid.SetColumn(rowNum, 0);
                 tableGrid.Children.Add(rowNum);
+                rowCells.Add(rowNum);
 
                 int cellsToRender = Math.Min(row.Cells.Count, columnsToRender);
                 for (int c = 0; c < cellsToRender; c++)
@@ -2266,45 +2245,38 @@ namespace WpfApp1.Views
                     var cell = row.Cells[c];
                     var cellBorder = new Border
                     {
-                        BorderBrush = BorderColor,
-                        BorderThickness = new Thickness(0, 0, 1, 1),
-                        Padding = cell.IsNested || !_isGridEditMode ? new Thickness(8, 4, 8, 4) : new Thickness(6, 3, 6, 3),
+                        BorderBrush = RowLineColor,
+                        BorderThickness = new Thickness(0, 0, 0, isLastRow ? 0 : 1),
+                        Padding = cell.IsNested ? new Thickness(12, 4, 12, 4) : new Thickness(12, 6, 12, 6),
                         MinWidth = 100,
-                        Background = r % 2 == 0 ? EvenRowBg : Brushes.White
+                        Background = rowBackground
                     };
 
                     if (cell.IsNested)
                     {
                         var nestedPanel = new StackPanel();
-                        var summaryBtn = new TextBlock
-                        {
-                            Text = cell.NestedSummary,
-                            Foreground = LinkColor,
-                            FontWeight = FontWeights.SemiBold,
-                            FontSize = 12,
-                            Cursor = Cursors.Hand
-                        };
+                        var nestedHeader = new GridToggleHeader(GetCellToggleTitle(cell), GetCellToggleCountText(cell), 0, compact: true);
                         var nestedContainer = new StackPanel { Visibility = Visibility.Collapsed };
                         Action renderNested = () =>
                         {
                             foreach (var nestedChild in cell.NestedChildren)
                                 RenderNestedContent(nestedChild, nestedContainer);
                         };
-                        _nestedGridSections[cell.JsonPath] = (summaryBtn, nestedContainer, renderNested);
-                        summaryBtn.MouseLeftButtonUp += (s, e) =>
+                        _nestedGridSections[cell.JsonPath] = (nestedHeader, nestedContainer, renderNested);
+                        nestedHeader.MouseLeftButtonUp += (s, e) =>
                         {
                             if (nestedContainer.Visibility == Visibility.Collapsed)
                             {
-                                ExpandNestedGridSection(summaryBtn, nestedContainer, renderNested);
+                                ExpandNestedGridSection(nestedHeader, nestedContainer, renderNested);
                             }
                             else
                             {
                                 nestedContainer.Visibility = Visibility.Collapsed;
-                                summaryBtn.Text = summaryBtn.Text.Replace("[-]", "[+]");
+                                nestedHeader.SetExpanded(false);
                             }
                             e.Handled = true;
                         };
-                        nestedPanel.Children.Add(summaryBtn);
+                        nestedPanel.Children.Add(nestedHeader);
                         nestedPanel.Children.Add(nestedContainer);
                         cellBorder.Child = nestedPanel;
                     }
@@ -2320,25 +2292,45 @@ namespace WpfApp1.Views
                     Grid.SetRow(cellBorder, gridRow);
                     Grid.SetColumn(cellBorder, c + 1);
                     tableGrid.Children.Add(cellBorder);
+                    rowCells.Add(cellBorder);
                 }
+
+                // 补齐缺列的行，避免斑马纹与悬停底色断裂
+                for (int c = cellsToRender; c < columnsToRender; c++)
+                {
+                    var filler = new Border
+                    {
+                        BorderBrush = RowLineColor,
+                        BorderThickness = new Thickness(0, 0, 0, isLastRow ? 0 : 1),
+                        Padding = new Thickness(12, 6, 12, 6),
+                        MinWidth = 100,
+                        Background = rowBackground
+                    };
+                    Grid.SetRow(filler, gridRow);
+                    Grid.SetColumn(filler, c + 1);
+                    tableGrid.Children.Add(filler);
+                    rowCells.Add(filler);
+                }
+
+                AttachRowHover(rowCells);
             }
 
             if (hasSummaryRow)
             {
-                int summaryRowIndex = node.TableRows.Count + 1;
+                int summaryRowIndex = rowsToRender + 1;
 
                 var summaryTitle = new Border
                 {
                     Background = SummaryAccentBg,
                     BorderBrush = BorderColor,
-                    BorderThickness = new Thickness(0, 0, 1, 0),
-                    Padding = new Thickness(8, 5, 8, 5),
+                    BorderThickness = new Thickness(0, 1, 0, 0),
+                    Padding = new Thickness(0, 6, 0, 6),
                     Child = new TextBlock
                     {
                         Text = "Σ",
                         Foreground = SummaryTextColor,
-                        FontWeight = FontWeights.Bold,
-                        FontSize = 13,
+                        FontWeight = FontWeights.SemiBold,
+                        FontSize = 12,
                         HorizontalAlignment = HorizontalAlignment.Center
                     }
                 };
@@ -2346,11 +2338,12 @@ namespace WpfApp1.Views
                 Grid.SetColumn(summaryTitle, 0);
                 tableGrid.Children.Add(summaryTitle);
 
-                for (int c = 0; c < node.TableColumns.Count; c++)
+                for (int c = 0; c < columnsToRender; c++)
                 {
                     var summaryText = new TextBlock
                     {
                         FontSize = 12,
+                        FontFamily = MonoFont,
                         FontWeight = FontWeights.SemiBold,
                         Foreground = SummaryTextColor,
                         VerticalAlignment = VerticalAlignment.Center
@@ -2360,12 +2353,12 @@ namespace WpfApp1.Views
                     {
                         Background = SummaryBg,
                         BorderBrush = BorderColor,
-                        BorderThickness = new Thickness(0, 0, 1, 0),
-                        Padding = new Thickness(8, 5, 8, 5),
+                        BorderThickness = new Thickness(0, 1, 0, 0),
+                        Padding = new Thickness(12, 6, 12, 6),
                         Child = summaryText
                     };
 
-                    if (summableColumns[c])
+                    if (c < summableColumns.Length && summableColumns[c])
                     {
                         summaryCells.Add(summaryText);
                     }
@@ -2389,6 +2382,51 @@ namespace WpfApp1.Views
             if (IsTablePreviewLimited(node, rowsToRender, columnsToRender))
                 tableHost.Children.Add(CreateTableLimitNotice(node, rowsToRender, columnsToRender));
             container.Children.Add(tableHost);
+        }
+
+        /// <summary>按圆角矩形裁剪元素内容，让表格四角与边框圆角对齐。</summary>
+        private static void ApplyRoundedClip(FrameworkElement element, double radius)
+        {
+            void Refresh()
+            {
+                double width = element.ActualWidth;
+                double height = element.ActualHeight;
+                if (width <= 0 || height <= 0)
+                    return;
+
+                element.Clip = new RectangleGeometry(new Rect(0, 0, width, height), radius, radius);
+            }
+
+            element.SizeChanged += (s, e) => Refresh();
+        }
+
+        /// <summary>整行悬停高亮（对应设计稿 tr:hover）。</summary>
+        private static void AttachRowHover(IReadOnlyList<Border> cells)
+        {
+            if (cells.Count == 0)
+                return;
+
+            var originalBackgrounds = new Brush?[cells.Count];
+            for (int i = 0; i < cells.Count; i++)
+                originalBackgrounds[i] = cells[i].Background;
+
+            void OnEnter(object sender, MouseEventArgs e)
+            {
+                foreach (var cell in cells)
+                    cell.Background = HoverRowBg;
+            }
+
+            void OnLeave(object sender, MouseEventArgs e)
+            {
+                for (int i = 0; i < cells.Count; i++)
+                    cells[i].Background = originalBackgrounds[i] ?? Brushes.Transparent;
+            }
+
+            foreach (var cell in cells)
+            {
+                cell.MouseEnter += OnEnter;
+                cell.MouseLeave += OnLeave;
+            }
         }
 
         private (int rowsToRender, int columnsToRender) GetTablePreviewSize(JsonGridNode node)
@@ -2423,15 +2461,15 @@ namespace WpfApp1.Views
 
             return new Border
             {
-                Background = MakeBrush("#F8FAFC"),
+                Background = MakeBrush("#F9FAFB"),
                 BorderBrush = BorderColor,
                 BorderThickness = new Thickness(1, 0, 1, 1),
-                CornerRadius = new CornerRadius(0, 0, 6, 6),
-                Padding = new Thickness(10, 6, 10, 6),
+                CornerRadius = new CornerRadius(0, 0, 8, 8),
+                Padding = new Thickness(12, 6, 12, 6),
                 Child = new TextBlock
                 {
                     Text = $"当前表格进入预览模式：{rowText}，{columnText}，避免大 JSON 一次性渲染导致卡顿。",
-                    Foreground = MakeBrush("#64748B"),
+                    Foreground = MakeBrush("#9CA3AF"),
                     FontSize = 12
                 }
             };
@@ -2463,13 +2501,16 @@ namespace WpfApp1.Views
             {
                 Text = cell.Value,
                 Foreground = MakeBrush(cell.ValueColor),
-                FontSize = 12,
-                VerticalAlignment = VerticalAlignment.Center,
+                FontFamily = MonoFont,
+                FontSize = 13,
+                FontStyle = cell.NodeType == "Null" ? FontStyles.Italic : FontStyles.Normal,
+                VerticalAlignment = VerticalAlignment.Top,
                 TextTrimming = TextTrimming.CharacterEllipsis,
                 MaxWidth = 280,
                 Cursor = Cursors.Hand,
                 ToolTip = "点击定位到左侧 JSON"
             };
+            Typography.SetNumeralAlignment(valTb, FontNumeralAlignment.Tabular);
 
             valTb.MouseLeftButtonUp += (s, e) =>
             {
@@ -2489,12 +2530,14 @@ namespace WpfApp1.Views
                 MinWidth = 110,
                 MaxWidth = 320,
                 Padding = new Thickness(6, 3, 6, 3),
-                FontSize = 12,
+                FontSize = 13,
+                FontFamily = MonoFont,
                 BorderBrush = EditorBorderBrush,
                 BorderThickness = new Thickness(1),
                 Background = Brushes.White,
                 Foreground = MakeBrush(cell.ValueColor),
-                VerticalContentAlignment = VerticalAlignment.Center,
+                VerticalAlignment = VerticalAlignment.Top,
+                VerticalContentAlignment = VerticalAlignment.Top,
                 HorizontalContentAlignment = HorizontalAlignment.Left,
                 ToolTip = "回车或失去焦点时保存，Esc 撤销当前单元格改动"
             };
@@ -2840,7 +2883,7 @@ namespace WpfApp1.Views
         private void RenderNestedContent(JsonGridNode nested, Panel container)
         {
             if (nested.HasTable)
-                RenderTable(nested, container, 0);
+                RenderTableContent(nested, container, 0, true);
             else if (nested.NodeType == "Object")
                 foreach (var child in nested.Children) RenderNode(child, container, 0);
             else
@@ -2899,15 +2942,30 @@ namespace WpfApp1.Views
 
         // ==================== 辅助方法 ====================
 
-        private Border CreateHeaderCell(string text)
+        private Border CreateHeaderCell(string text, bool isNested = false)
         {
+            bool isMenu = text == "···";
+            var textBlock = new TextBlock
+            {
+                // 顶层表头按设计稿转大写；嵌套表头保持原始键名，方便对照 JSON
+                Text = isNested || isMenu ? text : text.ToUpperInvariant(),
+                Foreground = isMenu ? RowNumFg : HeaderFg,
+                FontWeight = isMenu ? FontWeights.Normal : FontWeights.SemiBold,
+                FontSize = 12,
+                HorizontalAlignment = isMenu ? HorizontalAlignment.Center : HorizontalAlignment.Left,
+                VerticalAlignment = VerticalAlignment.Center,
+                TextTrimming = TextTrimming.CharacterEllipsis
+            };
+            // 搜索按原始键名匹配，避免大写显示影响大小写敏感查找
+            textBlock.Tag = text;
+
             return new Border
             {
-                Background = HeaderBg,
-                Padding = new Thickness(10, 5, 10, 5),
+                Background = isNested ? Brushes.Transparent : HeaderBg,
+                Padding = isMenu ? new Thickness(0, 6, 0, 6) : new Thickness(12, 6, 12, 6),
                 BorderBrush = HeaderBorderColor,
-                BorderThickness = new Thickness(0, 0, 1, 0),
-                Child = new TextBlock { Text = text, Foreground = Brushes.White, FontWeight = FontWeights.SemiBold, FontSize = 12 }
+                BorderThickness = new Thickness(0, 0, 0, 1),
+                Child = textBlock
             };
         }
 
