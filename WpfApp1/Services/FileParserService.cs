@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Text;
 using CsvHelper;
@@ -194,7 +195,7 @@ namespace WpfApp1.Services
                 DataRow row = table.NewRow();
                 for (int column = startColumn; column <= endColumn; column++)
                 {
-                    row[column - startColumn] = worksheet.Cells[rowIndex, column].Text ?? string.Empty;
+                    row[column - startColumn] = GetExcelCellText(worksheet.Cells[rowIndex, column]);
                 }
 
                 table.Rows.Add(row);
@@ -221,6 +222,30 @@ namespace WpfApp1.Services
 
             return table;
         }
+
+        private static string GetExcelCellText(ExcelRangeBase cell)
+        {
+            string displayedText = cell.Text ?? string.Empty;
+            if ((displayedText.IndexOf('E') < 0 && displayedText.IndexOf('e') < 0) || !IsNumericValue(cell.Value))
+            {
+                return displayedText;
+            }
+
+            try
+            {
+                decimal value = Convert.ToDecimal(cell.Value, CultureInfo.InvariantCulture);
+                return value.ToString("0.############################", CultureInfo.InvariantCulture);
+            }
+            catch (OverflowException)
+            {
+                return cell.Value is IFormattable value
+                    ? value.ToString("0.############################", CultureInfo.InvariantCulture)
+                    : displayedText;
+            }
+        }
+
+        private static bool IsNumericValue(object? value) => value is
+            byte or sbyte or short or ushort or int or uint or long or ulong or float or double or decimal;
 
         private static DataTable ParseExcelDataReader(
             string filePath,
