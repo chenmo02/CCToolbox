@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <Resource Include="favicon.ico" />
-    <Resource Include="..\img\**\*.png" Link="img\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Resource Include="..\img\**\*.png" Exclude="..\img\ggw.png;..\img\空间查询.png;..\img\配图检查.png" Link="img\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,9 +30,7 @@
     <PackageReference Include="EPPlus" Version="8.5.1" />
     <PackageReference Include="ExcelDataReader" Version="3.8.0" />
     <PackageReference Include="ExcelDataReader.DataSet" Version="3.8.0" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.0" />
     <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3124.44" />
-    <PackageReference Include="Npgsql" Version="10.0.2" />
   </ItemGroup>
 
 </Project>

@@ -8,32 +8,264 @@
       FocusVisualStyle="{x:Null}">
 
     <Page.Resources>
+        <CubicEase x:Key="QuickCardEase" EasingMode="EaseOut"/>
+        <MeshGeometry3D x:Key="VersionBadgeMesh"
+                        Positions="-1,-0.72,0 1,-0.72,0 1,0.72,0 -1,0.72,0"
+                        TextureCoordinates="0,1 1,1 1,0 0,0" TriangleIndices="0 1 2 0 2 3"/>
         <Style x:Key="QuickCardIconStyle" TargetType="Border">
             <Setter Property="Width" Value="56"/>
             <Setter Property="Height" Value="56"/>
-            <Setter Property="CornerRadius" Value="14"/>
-            <Setter Property="Background" Value="#EEF2FF"/>
-            <Setter Property="HorizontalAlignment" Value="Left"/>
-        </Style>
-        <Style x:Key="HomeCardStyle" TargetType="Border">
+            <Setter Property="CornerRadius" Value="16"/>
             <Setter Property="Background">
                 <Setter.Value>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                        <GradientStop Color="White" Offset="0"/>
-                        <GradientStop Color="White" Offset="1"/>
+                        <GradientStop Color="#6A85FF" Offset="0"/>
+                        <GradientStop Color="#8B5CF6" Offset="1"/>
                     </LinearGradientBrush>
                 </Setter.Value>
             </Setter>
-            <Setter Property="BorderBrush" Value="#E6EDFA"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="CornerRadius" Value="12"/>
-            <Setter Property="Padding" Value="20,24"/>
-            <Setter Property="Margin" Value="8"/>
-            <Setter Property="MinHeight" Value="260"/>
-            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="HorizontalAlignment" Value="Left"/>
             <Setter Property="Effect">
                 <Setter.Value>
-                    <DropShadowEffect Color="#C9D7EE" BlurRadius="12" ShadowDepth="3" Opacity="0.16"/>
+                    <DropShadowEffect Color="#6B5CF6" BlurRadius="14" ShadowDepth="6" Opacity="0.35"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HomeCardStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E6EAF5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Margin" Value="12"/>
+            <Setter Property="MinHeight" Value="265"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <ScaleTransform ScaleX="1" ScaleY="1"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#252C61" BlurRadius="15" ShadowDepth="5" Opacity="0.15"/>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Panel.ZIndex" Value="9"/>
+                    <Trigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#309DF0" Duration="0:0:0.7"/>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                To="#309DF0" Duration="0:0:0.7"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                 To="1.1" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                 To="1.1" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.EnterActions>
+                    <Trigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="White" Duration="0:0:0.7"/>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
+                                                To="#E6EAF5" Duration="0:0:0.7"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"
+                                                 To="1" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"
+                                                 To="1" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </Trigger.ExitActions>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="QuickCardTextStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#4F46E5"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ContentControl}}" Value="True">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                To="White" Duration="0:0:0.5"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                Duration="0:0:0.5" FillBehavior="Stop"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="QuickCardTitleStyle" TargetType="TextBlock" BasedOn="{StaticResource QuickCardTextStyle}">
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Foreground" Value="#1A2340"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,18,0,0"/>
+        </Style>
+        <Style x:Key="QuickCardDescriptionStyle" TargetType="TextBlock" BasedOn="{StaticResource QuickCardTextStyle}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="LineHeight" Value="22.4"/>
+            <Setter Property="Foreground" Value="#5F6B88"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="Margin" Value="0,12,0,0"/>
+        </Style>
+        <Style x:Key="QuickCardTagStyle" TargetType="Border">
+            <Setter Property="Background" Value="#EEF1FF"/>
+            <Setter Property="CornerRadius" Value="6"/>
+            <Setter Property="Padding" Value="8,2"/>
+            <Setter Property="Margin" Value="0,0,6,6"/>
+            <Style.Resources>
+                <Style TargetType="TextBlock" BasedOn="{StaticResource QuickCardTextStyle}">
+                    <Setter Property="FontSize" Value="12"/>
+                    <Setter Property="FontWeight" Value="Medium"/>
+                </Style>
+            </Style.Resources>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ContentControl}}" Value="True">
+                    <Setter Property="Cursor" Value="Hand"/>
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#38FFFFFF" Duration="0:0:0.5"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#EEF1FF" Duration="0:0:0.5"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="QuickCardSurfaceStyle" TargetType="ContentControl">
+            <Setter Property="Focusable" Value="False"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ContentControl">
+                        <Grid>
+                            <Border x:Name="CardMask" CornerRadius="14"
+                                    Background="{Binding Background, RelativeSource={RelativeSource AncestorType=Border}}"/>
+                            <Grid IsHitTestVisible="False" ClipToBounds="True">
+                                <Grid.OpacityMask>
+                                    <VisualBrush Visual="{Binding ElementName=CardMask}"/>
+                                </Grid.OpacityMask>
+                                <!-- 先裁剪装饰图形，避免超大气泡撑大圆角遮罩的映射范围。 -->
+                                <Canvas Background="Transparent" ClipToBounds="True">
+                                    <Border x:Name="CardStripe" Width="170" Height="400" CornerRadius="35"
+                                            Background="#0D556CD6" Canvas.Right="-56" Canvas.Top="-23"
+                                            RenderTransformOrigin="0.5,0.5">
+                                        <Border.RenderTransform>
+                                            <RotateTransform Angle="42"/>
+                                        </Border.RenderTransform>
+                                    </Border>
+                                    <Ellipse x:Name="CardBubble" Width="1600" Height="1600" Fill="#263651CF"
+                                             Canvas.Left="-288" Canvas.Top="256">
+                                        <Ellipse.RenderTransform>
+                                            <TranslateTransform/>
+                                        </Ellipse.RenderTransform>
+                                    </Ellipse>
+                                </Canvas>
+                            </Grid>
+                            <Grid Margin="24">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="*"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <ContentPresenter/>
+                                <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,12,0,0">
+                                    <StackPanel.Resources>
+                                        <Style TargetType="TextBlock" BasedOn="{StaticResource QuickCardTextStyle}">
+                                            <Setter Property="FontSize" Value="14"/>
+                                            <Setter Property="FontWeight" Value="SemiBold"/>
+                                        </Style>
+                                    </StackPanel.Resources>
+                                    <TextBlock Text="进入"/>
+                                    <TextBlock x:Name="CardArrow" Text="→" Margin="4,0,0,0">
+                                        <TextBlock.RenderTransform>
+                                            <TranslateTransform/>
+                                        </TextBlock.RenderTransform>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Grid>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="CardStripe"
+                                                            Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                            To="#1A556CD6" Duration="0:0:0.7"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBubble"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                             To="-256" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardArrow"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                             To="5" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                                <Trigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <ColorAnimation Storyboard.TargetName="CardStripe"
+                                                            Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                            To="#0D556CD6" Duration="0:0:0.7"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardBubble"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                             To="0" Duration="0:0:0.7" EasingFunction="{StaticResource QuickCardEase}"/>
+                                            <DoubleAnimation Storyboard.TargetName="CardArrow"
+                                                             Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.X)"
+                                                             To="0" Duration="0:0:0.2"/>
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.ExitActions>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HomeSectionStyle" TargetType="Border">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="#E6EAF5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="15"/>
+            <Setter Property="Padding" Value="24"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect Color="#252C61" BlurRadius="16" ShadowDepth="4" Opacity="0.08"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="HomeInfoTileStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F7F8FE"/>
+            <Setter Property="BorderBrush" Value="#E6EAF5"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="18"/>
+            <Setter Property="MinHeight" Value="90"/>
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform/>
                 </Setter.Value>
             </Setter>
             <Style.Triggers>
@@ -41,24 +273,24 @@
                     <Trigger.EnterActions>
                         <BeginStoryboard>
                             <Storyboard>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[0].(GradientStop.Color)"
-                                                To="#FAFBFF" Duration="0:0:0.25"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)"
-                                                To="#E5ECFF" Duration="0:0:0.25"/>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#EEF2FF" Duration="0:0:0.25"/>
                                 <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                To="#B8C8FF" Duration="0:0:0.25"/>
+                                                To="#C7D2FE" Duration="0:0:0.25"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                 To="-2" Duration="0:0:0.25"/>
                             </Storyboard>
                         </BeginStoryboard>
                     </Trigger.EnterActions>
                     <Trigger.ExitActions>
                         <BeginStoryboard>
                             <Storyboard>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[0].(GradientStop.Color)"
-                                                To="White" Duration="0:0:0.2"/>
-                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(GradientBrush.GradientStops)[1].(GradientStop.Color)"
-                                                To="White" Duration="0:0:0.2"/>
+                                <ColorAnimation Storyboard.TargetProperty="(Border.Background).(SolidColorBrush.Color)"
+                                                To="#F7F8FE" Duration="0:0:0.25"/>
                                 <ColorAnimation Storyboard.TargetProperty="(Border.BorderBrush).(SolidColorBrush.Color)"
-                                                To="#E6EDFA" Duration="0:0:0.2"/>
+                                                To="#E6EAF5" Duration="0:0:0.25"/>
+                                <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)"
+                                                 To="0" Duration="0:0:0.25"/>
                             </Storyboard>
                         </BeginStoryboard>
                     </Trigger.ExitActions>
@@ -67,9 +299,9 @@
         </Style>
     </Page.Resources>
 
-    <ScrollViewer Style="{DynamicResource PageScrollViewerStyle}" Padding="32,28"
+    <ScrollViewer Style="{DynamicResource PageScrollViewerStyle}" Padding="16,28"
                   SizeChanged="HomeScrollViewer_SizeChanged">
-        <Grid MaxWidth="1280"
+        <Grid MaxWidth="1280" Margin="16,0"
               MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -77,68 +309,147 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Border
-                    CornerRadius="12"
-                    Padding="24,20"
-                    MinHeight="120"
-                    Margin="0,0,0,24"
-                    BorderBrush="#E3EBFA"
-                    BorderThickness="1">
+            <Border Style="{StaticResource HomeSectionStyle}"
+                    MinHeight="148" Margin="0,0,0,24">
                 <Border.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
                         <GradientStop Color="#FFFFFF" Offset="0"/>
-                        <GradientStop Color="#F0F3FF" Offset="1"/>
+                        <GradientStop Color="#F1F3FF" Offset="1"/>
                     </LinearGradientBrush>
                 </Border.Background>
                 <Grid>
                     <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
-                    <StackPanel VerticalAlignment="Center" Margin="0,0,16,0">
+                    <Border Width="4" Height="64" CornerRadius="2" Margin="0,0,18,0"
+                            VerticalAlignment="Center">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#6A85FF" Offset="0"/>
+                                <GradientStop Color="#8B5CF6" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,20,0">
                         <TextBlock Text="欢迎使用 CC 实施工具箱"
                                    FontSize="26"
                                    FontWeight="Bold"
-                                   Foreground="#101A42"
+                                   Foreground="#1A2340"
                                    TextWrapping="Wrap"/>
                         <TextBlock Text="高效、安全的数据实施与办公辅助工具"
                                    FontSize="14"
-                                   Foreground="#7B8BB0"
+                                   Foreground="#5F6B88"
                                    TextWrapping="Wrap"
                                    Margin="0,8,0,0"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                            <TextBlock Text="by"
-                                       FontSize="12"
-                                       Foreground="#9CA3AF"
-                                       VerticalAlignment="Center"/>
-                            <TextBlock Text="悲伤番茄"
-                                       FontSize="13"
-                                       FontWeight="SemiBold"
-                                       Foreground="#fe491a"
-                                       Margin="6,0,0,0"
-                                       VerticalAlignment="Center"/>
-                        </StackPanel>
+                        <Border Background="#FFF2EC" CornerRadius="8" Padding="9,3"
+                                HorizontalAlignment="Left" Margin="0,12,0,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="by" FontSize="12" Foreground="#8B756E"
+                                           VerticalAlignment="Center"/>
+                                <TextBlock Text="悲伤番茄" FontSize="12" FontWeight="SemiBold"
+                                           Foreground="#fe491a" Margin="6,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Border>
                     </StackPanel>
 
-                    <Border Grid.Column="1"
-                            Padding="24,14"
-                            Background="#EEF2FF"
-                            CornerRadius="10"
-                            VerticalAlignment="Center">
-                        <StackPanel>
-                            <!-- 发布前改版本号 -->
-                            <TextBlock Text="当前版本"
-                                       FontSize="12"
-                                       HorizontalAlignment="Center"
-                                       Foreground="#7B8BB0"/>
-                            <TextBlock x:Name="TxtVersionBadge"
-                                       FontSize="24"
-                                       FontWeight="Bold"
-                                       Foreground="#4E6EF2"
-                                       Margin="0,2,0,0"><Run Text="v2.3."/><Run Language="zh-cn" Text="6"/></TextBlock>
-                        </StackPanel>
-                    </Border>
+                    <Grid x:Name="VersionBadgeHost" Grid.Column="2" Width="150" Height="112"
+                          Background="Transparent" VerticalAlignment="Center">
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="VersionBadgeRotation" Storyboard.TargetProperty="Angle"
+                                                         To="180" Duration="0:0:0.8" EasingFunction="{StaticResource QuickCardEase}"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="VersionBadgeRotation" Storyboard.TargetProperty="Angle"
+                                                         To="0" Duration="0:0:0.8" EasingFunction="{StaticResource QuickCardEase}"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <Viewport3D IsHitTestVisible="False">
+                            <Viewport3D.Camera>
+                                <PerspectiveCamera Position="0,0,5" LookDirection="0,0,-1" UpDirection="0,1,0" FieldOfView="26.5"/>
+                            </Viewport3D.Camera>
+                            <ModelVisual3D>
+                                <ModelVisual3D.Content>
+                                    <AmbientLight Color="White"/>
+                                </ModelVisual3D.Content>
+                            </ModelVisual3D>
+                            <ModelVisual3D>
+                                <ModelVisual3D.Transform>
+                                    <RotateTransform3D>
+                                        <RotateTransform3D.Rotation>
+                                            <AxisAngleRotation3D x:Name="VersionBadgeRotation" Axis="0,1,0" Angle="0"/>
+                                        </RotateTransform3D.Rotation>
+                                    </RotateTransform3D>
+                                </ModelVisual3D.Transform>
+                                <Viewport2DVisual3D Geometry="{StaticResource VersionBadgeMesh}">
+                                    <Viewport2DVisual3D.Material>
+                                        <DiffuseMaterial Viewport2DVisual3D.IsVisualHostMaterial="True" Brush="White"/>
+                                    </Viewport2DVisual3D.Material>
+                                    <Viewport2DVisual3D.Visual>
+                                        <Border Width="130" Height="94" CornerRadius="14">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#6A85FF" Offset="0"/>
+                                                    <GradientStop Color="#8B5CF6" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <StackPanel VerticalAlignment="Center">
+                                                <TextBlock Text="当前版本" FontSize="12" Foreground="#E7EAFF" HorizontalAlignment="Center"/>
+                                                <!-- 发布前改版本号，背面同步此值。 -->
+                                                <TextBlock x:Name="TxtVersionBadge" Text="v2.3.7" FontSize="28" FontWeight="Bold"
+                                                           Foreground="White" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Viewport2DVisual3D.Visual>
+                                </Viewport2DVisual3D>
+                                <Viewport2DVisual3D Geometry="{StaticResource VersionBadgeMesh}">
+                                    <Viewport2DVisual3D.Transform>
+                                        <RotateTransform3D>
+                                            <RotateTransform3D.Rotation>
+                                                <AxisAngleRotation3D Axis="0,1,0" Angle="180"/>
+                                            </RotateTransform3D.Rotation>
+                                        </RotateTransform3D>
+                                    </Viewport2DVisual3D.Transform>
+                                    <Viewport2DVisual3D.Material>
+                                        <DiffuseMaterial Viewport2DVisual3D.IsVisualHostMaterial="True" Brush="White"/>
+                                    </Viewport2DVisual3D.Material>
+                                    <Viewport2DVisual3D.Visual>
+                                        <Border Width="130" Height="94" CornerRadius="14">
+                                            <Border.Background>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#F6ECD2" Offset="0"/>
+                                                    <GradientStop Color="#E8D5A3" Offset="0.5"/>
+                                                    <GradientStop Color="#CDB06A" Offset="1"/>
+                                                </LinearGradientBrush>
+                                            </Border.Background>
+                                            <Border BorderBrush="#99FFFFFF" BorderThickness="1" CornerRadius="14">
+                                                <Grid>
+                                                    <Border BorderBrush="#CCFFFFFF" BorderThickness="0,1,0,0" CornerRadius="13"
+                                                            IsHitTestVisible="False"/>
+                                                    <StackPanel VerticalAlignment="Center">
+                                                        <TextBlock Text="当前版本" FontSize="12" Foreground="#7D6428" HorizontalAlignment="Center"/>
+                                                        <TextBlock Text="{Binding Text, ElementName=TxtVersionBadge}" FontSize="28" FontWeight="Bold"
+                                                                   Foreground="#6B5320" HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </Border>
+                                        </Border>
+                                    </Viewport2DVisual3D.Visual>
+                                </Viewport2DVisual3D>
+                            </ModelVisual3D>
+                        </Viewport3D>
+                    </Grid>
                 </Grid>
             </Border>
 
@@ -150,235 +461,156 @@
                            Foreground="#101A42" VerticalAlignment="Center"/>
             </StackPanel>
 
-            <UniformGrid x:Name="QuickCards" Grid.Row="2" Columns="4" Margin="-8,0,-8,16">
+            <UniformGrid x:Name="QuickCards" Grid.Row="2" Columns="4" Margin="-12,0,-12,16" ClipToBounds="False">
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToImport_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#FF88A4FF">
-                            <Image Source="/img/数据集投影转换.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock Text="临时数据建表" FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"/>
-                            <TextBlock Text="Excel、CSV、DBF 一键转换为 SQL 临时表脚本"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/数据集投影转换.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="临时数据建表" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="Excel、CSV、DBF 一键转换为 SQL 临时表脚本" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="xlsx"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="csv"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="dbf"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#4F46E5" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToCsvViewer_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#FF6AE7C0">
-                            <Image Source="/img/筛选.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"><Run Text="CSV"/><Run Language="zh-cn" Text=" "/><Run Text="文件预览"/></TextBlock>
-                            <TextBlock Text="稳定打开分隔文本，支持搜索、定位与编码识别"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/筛选.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="CSV 文件预览" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="稳定打开分隔文本，支持搜索、定位与编码识别" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="csv"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="搜索"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="编码识别"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#059669" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToQuickTable_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#DBEAFE">
-                            <Image Source="/img/快速建表.png"
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock Text="快速建数据表" FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"/>
-                            <TextBlock Text="粘贴 INSERT INTO，自动提取字段、推断类型并生成建表 SQL"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/快速建表.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="快速建数据表" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="粘贴 INSERT INTO，自动提取字段、推断类型并生成建表 SQL" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="INSERT"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="SQL"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToJsonTool_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#CEE8FF">
-                            <Image Source="/img/数据处理.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"><Run Text="JSON"/><Run Language="zh-cn" Text=" "/><Run Text="数据解析"/></TextBlock>
-                            <TextBlock Text="格式化、校验、搜索与嵌套 GRID 浏览一体完成"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/数据处理.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="JSON 数据解析" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="格式化、校验、搜索与嵌套 GRID 浏览一体完成" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="JSON"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="GRID"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#0284C7" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToJsonDiff_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#FCD7EF">
-                            <Image Source="/img/sql语句查询.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"><Run Text="JSON"/><Run Language="zh-cn" Text=" "/><Run Text="内容比对"/></TextBlock>
-                            <TextBlock Text="深度比较结构和值差异，快速定位新增、删除和变更"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/sql语句查询.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="JSON 内容比对" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="深度比较结构和值差异，快速定位新增、删除和变更" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="JSON"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="差异比对"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#7C3AED" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToDrawBoard_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#E9DCFF">
-                            <Image Source="/img/excalidraw.png" 
-                                   Stretch="Uniform"
-                                   Width="35" Height="35"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock Text="在线绘图工具" FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"/>
-                            <TextBlock Text="流程图、草图和示意图快速绘制，适合沟通方案"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/excalidraw.png" Stretch="Uniform" Width="35" Height="35"/>
+                            </Border>
+                            <TextBlock Text="在线绘图工具" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="流程图、草图和示意图快速绘制，适合沟通方案" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="流程图"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="草图"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="示意图"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#DB2777" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToInvoice_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#DDF7B7">
-                            <Image Source="/img/输出图片.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock Text="发票打印操作" FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"/>
-                            <TextBlock Text="PDF、OFD 排版打印与模板管理，适合办公场景"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/输出图片.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="发票打印操作" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="PDF、OFD 排版打印与模板管理，适合办公场景" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="PDF"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="OFD"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#65A30D" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
 
                 <Border Style="{StaticResource HomeCardStyle}" MouseLeftButtonUp="GoToDataValidation_Click">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                        </Grid.RowDefinitions>
-                        <Border Style="{StaticResource QuickCardIconStyle}" Background="#EEF2FF">
-                            <Image Source="/img/检查.png" 
-                                   Stretch="Uniform"
-                                   Width="38" Height="38"
-                                   HorizontalAlignment="Center" 
-                                   VerticalAlignment="Center"/>
-                        </Border>
-                        <StackPanel Grid.Row="1" Margin="0,14,0,0">
-                            <TextBlock Text="数据验证排查" FontSize="18" FontWeight="SemiBold" Foreground="#101A42" TextWrapping="Wrap"/>
-                            <TextBlock Text="导入 DDL 与 INSERT 数据，自动映射字段并逐行校验类型约束"
-                                       FontSize="13"
-                                       Foreground="#7B8BB0"
-                                       Margin="0,8,0,0"
-                                       TextWrapping="Wrap"
-                                       LineHeight="24"/>
+                    <ContentControl Style="{StaticResource QuickCardSurfaceStyle}">
+                        <StackPanel>
+                            <Border Style="{StaticResource QuickCardIconStyle}">
+                                <Image Source="/img/检查.png" Stretch="Uniform" Width="38" Height="38"/>
+                            </Border>
+                            <TextBlock Text="数据验证排查" Style="{StaticResource QuickCardTitleStyle}"/>
+                            <TextBlock Text="导入 DDL 与 INSERT 数据，自动映射字段并逐行校验类型约束" Style="{StaticResource QuickCardDescriptionStyle}"/>
+                            <WrapPanel Margin="0,12,0,0">
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="DDL"/></Border>
+                                <Border Style="{StaticResource QuickCardTagStyle}"><TextBlock Text="INSERT"/></Border>
+                            </WrapPanel>
                         </StackPanel>
-                        <TextBlock Grid.Row="2" Text="点击进入" FontSize="14" FontWeight="SemiBold" Foreground="#4E6EF2" Margin="0,14,0,0"/>
-                    </Grid>
+                    </ContentControl>
                 </Border>
             </UniformGrid>
 
-            <Border Grid.Row="3" Background="#F8FAFF"
-                    CornerRadius="12"
-                    Padding="16"
-                    BorderBrush="#E3EBFA"
-                    BorderThickness="1">
+            <Border Grid.Row="3" Style="{StaticResource HomeSectionStyle}">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="4,0,0,14">
-                        <Path Data="M 0,6 L 10,0 L 20,6 L 10,12 Z M 0,10 L 10,16 L 20,10 M 0,14 L 10,20 L 20,14"
-                              Stroke="#4E6EF2" StrokeThickness="2" StrokeLineJoin="Round"
-                              Width="20" Height="20" Stretch="Uniform" VerticalAlignment="Center" Margin="0,0,12,0"/>
-                        <TextBlock Text="系统信息" FontSize="17" FontWeight="SemiBold" Foreground="#101A42"/>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,18">
+                        <Border Width="32" Height="32" CornerRadius="10" Margin="0,0,10,0">
+                            <Border.Background>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#6A85FF" Offset="0"/>
+                                    <GradientStop Color="#8B5CF6" Offset="1"/>
+                                </LinearGradientBrush>
+                            </Border.Background>
+                            <Path Data="M 0,6 L 10,0 L 20,6 L 10,12 Z M 0,10 L 10,16 L 20,10 M 0,14 L 10,20 L 20,14"
+                                  Stroke="White" StrokeThickness="2" StrokeLineJoin="Round"
+                                  Width="18" Height="18" Stretch="Uniform"
+                                  HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <TextBlock Text="系统信息" FontSize="18" FontWeight="SemiBold"
+                                   Foreground="#1A2340" VerticalAlignment="Center"/>
                     </StackPanel>
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -387,33 +619,47 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Background="White" BorderBrush="#E6EDFA" BorderThickness="1"
-                                CornerRadius="10" Padding="18,16">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Width="38" Height="38" CornerRadius="19" Background="#F0F3FF" Margin="0,0,12,0">
+                        <Button Grid.Column="0" Click="OpenCreatorPage_Click" Cursor="Hand"
+                                ToolTip="在浏览器中打开悲伤番茄的主页" AutomationProperties.Name="打开悲伤番茄的主页">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Style="{StaticResource HomeInfoTileStyle}">
+                                        <ContentPresenter/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="44" Height="44" CornerRadius="13" Background="#FFF0E8" Margin="0,0,14,0">
                                     <TextBlock Text="&#xE77B;" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                               Foreground="#4E6EF2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                               Foreground="#F46A3A" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <StackPanel>
-                                    <TextBlock Text="创世主" FontSize="12" Foreground="#7B8BB0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="创世主" FontSize="12" Foreground="#74809B"/>
                                     <TextBlock x:Name="TxtRuntime" Text="悲伤番茄" FontSize="18" FontWeight="Bold"
-                                               Foreground="#fe491a" Margin="0,4,0,0"/>
+                                               Foreground="#fe491a" Margin="0,6,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
-                            </StackPanel>
-                        </Border>
-                        <Border Grid.Column="2" Background="White" BorderBrush="#E6EDFA" BorderThickness="1"
-                                CornerRadius="10" Padding="18,16">
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                <Border Width="38" Height="38" CornerRadius="19" Background="#F0F3FF" Margin="0,0,12,0">
+                            </Grid>
+                        </Button>
+                        <Border Grid.Column="2" Style="{StaticResource HomeInfoTileStyle}">
+                            <Grid VerticalAlignment="Center">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <Border Width="44" Height="44" CornerRadius="13" Background="#ECEBFF" Margin="0,0,14,0">
                                     <TextBlock Text="&#xE787;" FontFamily="Segoe MDL2 Assets" FontSize="20"
-                                               Foreground="#4E6EF2" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                               Foreground="#7361E8" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                 </Border>
-                                <StackPanel>
-                                    <TextBlock Text="最新发布日期" FontSize="12" Foreground="#7B8BB0"/>
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="最新发布日期" FontSize="12" Foreground="#74809B" TextWrapping="Wrap"/>
                                     <TextBlock x:Name="TxtReleaseDate" FontSize="18" FontWeight="Bold"
-                                               Foreground="#101A42" Margin="0,4,0,0"/>
+                                               Foreground="#1A2340" Margin="0,6,0,0" TextWrapping="Wrap"/>
                                 </StackPanel>
-                            </StackPanel>
+                            </Grid>
                         </Border>
                     </Grid>
                 </StackPanel>

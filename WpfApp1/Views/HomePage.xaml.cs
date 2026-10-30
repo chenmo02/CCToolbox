@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -18,6 +19,14 @@ namespace WpfApp1.Views
         private void HomeScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             QuickCards.Columns = e.NewSize.Width >= 820 ? 4 : 2;
+        }
+
+        private void OpenCreatorPage_Click(object sender, RoutedEventArgs e)
+        {
+            Process.Start(new ProcessStartInfo("https://w1.v3z.cn/PYksVU")
+            {
+                UseShellExecute = true
+            });
         }
 
         private void GoToImport_Click(object sender, System.Windows.Input.MouseButtonEventArgs e)
