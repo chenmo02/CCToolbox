@@ -407,7 +407,7 @@
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="当前版本" FontSize="12" Foreground="#E7EAFF" HorizontalAlignment="Center"/>
                                                 <!-- 发布前改版本号，背面同步此值。 -->
-                                                <TextBlock x:Name="TxtVersionBadge" Text="v2.3.7" FontSize="28" FontWeight="Bold"
+                                                <TextBlock x:Name="TxtVersionBadge" Text="v2.3.8" FontSize="28" FontWeight="Bold"
                                                            Foreground="White" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                             </StackPanel>
                                         </Border>

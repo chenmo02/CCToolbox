@@ -41,7 +41,7 @@ namespace WpfApp1.Views
         private bool _debugTableNameInjected;
         private bool _isImporting;
         private bool _isParsingInsert;
-        private readonly ObservableCollection<string> _ignoredActualValueTags = [];
+        private readonly ObservableCollection<string> _ignoredActualValueTags = ["-"];
         private ICollectionView? _issueView;
         private string _currentIssueTypeFilter = AllIssueTypesOption;
         private string _issueSearchKeyword = string.Empty;
@@ -85,7 +85,6 @@ namespace WpfApp1.Views
             TxtInsert.TextChanged += TxtInsert_TextChanged;
 
             IgnoredValuesItems.ItemsSource = _ignoredActualValueTags;
-            SyncIgnoredTagsFromText();
             CbIssueTypeFilter.ItemsSource = new[] { AllIssueTypesOption };
             CbIssueTypeFilter.SelectedIndex = 0;
         }
@@ -1244,6 +1243,7 @@ namespace WpfApp1.Views
                 IssueChartCanvas.Children.Clear();
             if (TxtIssueChartTotal != null)
                 TxtIssueChartTotal.Text = "0";
+            RefreshIssueView();
         }
 
         private void RefreshMappingPkDropdowns(bool resetSelection = false)
@@ -1585,18 +1585,34 @@ namespace WpfApp1.Views
             return values;
         }
 
-        private void SyncIgnoredTagsFromText()
+        private int CommitIgnoredActualValues()
         {
-            _ignoredActualValueTags.Clear();
+            int added = 0;
             foreach (string value in ParseIgnoredActualValues(TxtIgnoredActualValues.Text))
-                _ignoredActualValueTags.Add(value);
+            {
+                if (AddIgnoredActualValueTag(value))
+                    added++;
+            }
 
-            SyncIgnoredTextFromTags();
+            TxtIgnoredActualValues.Clear();
+            return added;
         }
 
-        private void SyncIgnoredTextFromTags()
+        private void BtnAddIgnoredActualValues_Click(object sender, RoutedEventArgs e)
         {
-            TxtIgnoredActualValues.Text = string.Join(", ", _ignoredActualValueTags);
+            int added = CommitIgnoredActualValues();
+            if (added > 0)
+                ChkSkipActualValues.IsChecked = true;
+            SetStatus(added > 0
+                ? $"已添加 {added} 个忽略值，重新点击「开始校验」生效"
+                : "请输入新的非空忽略值", added == 0);
+        }
+
+        private void TxtIgnoredActualValues_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key != Key.Enter) return;
+            e.Handled = true;
+            BtnAddIgnoredActualValues_Click(sender, e);
         }
 
         private bool AddIgnoredActualValueTag(string? rawValue)
@@ -1607,7 +1623,6 @@ namespace WpfApp1.Views
                 return false;
 
             _ignoredActualValueTags.Add(value);
-            SyncIgnoredTextFromTags();
             return true;
         }
 
@@ -1646,14 +1661,13 @@ namespace WpfApp1.Views
             if (existing == null) return;
 
             _ignoredActualValueTags.Remove(existing);
-            SyncIgnoredTextFromTags();
             SetStatus($"已移除忽略值：{value}，重新点击「开始校验」生效");
         }
 
         private void BtnClearIgnoredActualValues_Click(object sender, RoutedEventArgs e)
         {
             _ignoredActualValueTags.Clear();
-            SyncIgnoredTextFromTags();
+            TxtIgnoredActualValues.Clear();
             SetStatus("已清空忽略值，重新点击「开始校验」生效");
         }
 
@@ -1674,10 +1688,12 @@ namespace WpfApp1.Views
             SummaryCard.Visibility = Visibility.Visible;
             BtnExportReport.Visibility = Visibility.Visible;
 
+            _currentPage = 1;
+            _issueView = null;
             RefreshIssueTypeFilter(lastResult.Issues);
             _issueView = CollectionViewSource.GetDefaultView(lastResult.Issues);
             _issueView.Filter = FilterIssue;
-            DgIssues.ItemsSource = _issueView;
+            _issueView.SortDescriptions.Clear();
             RefreshIssueView();
             RefreshIssueTypeStats(lastResult.Issues);
         }
@@ -1717,7 +1733,7 @@ namespace WpfApp1.Views
                    ContainsKeyword(issue.TargetColumnName, keyword) ||
                    ContainsKeyword(issue.TargetDataType, keyword) ||
                    ContainsKeyword(issue.ErrorType, keyword) ||
-                   ContainsKeyword(issue.ActualValue, keyword) ||
+                   ContainsKeyword(issue.FullActualValue ?? issue.ActualValue, keyword) ||
                    ContainsKeyword(issue.Message, keyword);
         }
 
@@ -1732,11 +1748,16 @@ namespace WpfApp1.Views
                 _allFilteredIssues = [];
                 _currentPage = 1;
                 _totalPages = 1;
+                if (DgIssues != null)
+                    DgIssues.ItemsSource = null;
+                if (TxtIssueVisibleCount != null)
+                    TxtIssueVisibleCount.Text = "共 0 条";
                 UpdatePaginationUI();
                 return;
             }
 
             // 获取所有过滤后的数据
+            _issueView.Refresh();
             _allFilteredIssues = _issueView.Cast<DvIssue>().ToList();
             int totalCount = _allFilteredIssues.Count;
 
@@ -1749,38 +1770,36 @@ namespace WpfApp1.Views
             if (_currentPage < 1)
                 _currentPage = 1;
 
-            // 获取当前页数据并添加页面内序号
-            var pagedIssues = _allFilteredIssues
+            // 保留原始记录，供选中实际值和复制操作使用。
+            DgIssues.ItemsSource = _allFilteredIssues
                 .Skip((_currentPage - 1) * _pageSize)
                 .Take(_pageSize)
-                .Select((issue, index) =>
-                {
-                    // 使用动态对象添加页面内序号属性
-                    return new
-                    {
-                        PageRowNumber = index + 1,
-                        issue.RowNumber,
-                        issue.PrimaryKeyDisplay,
-                        issue.HasUsablePrimaryKey,
-                        issue.SourceColumnName,
-                        issue.TargetColumnName,
-                        issue.TargetDataType,
-                        issue.Level,
-                        issue.ErrorType,
-                        issue.ActualValue,
-                        issue.FullActualValue,
-                        issue.Message,
-                        issue.LevelText
-                    };
-                })
                 .ToList();
 
-            // 更新 DataGrid
-            DgIssues.ItemsSource = pagedIssues;
+            foreach (var column in DgIssues.Columns)
+            {
+                column.SortDirection = _issueView.SortDescriptions
+                    .Where(sort => sort.PropertyName == column.SortMemberPath)
+                    .Select(sort => (ListSortDirection?)sort.Direction)
+                    .FirstOrDefault();
+            }
 
             // 更新UI
             TxtIssueVisibleCount.Text = $"共 {totalCount:N0} 条";
             UpdatePaginationUI();
+        }
+
+        private void DgIssues_Sorting(object sender, DataGridSortingEventArgs e)
+        {
+            e.Handled = true;
+            if (_issueView == null || string.IsNullOrEmpty(e.Column.SortMemberPath)) return;
+
+            var direction = e.Column.SortDirection == ListSortDirection.Ascending
+                ? ListSortDirection.Descending : ListSortDirection.Ascending;
+            _issueView.SortDescriptions.Clear();
+            _issueView.SortDescriptions.Add(new SortDescription(e.Column.SortMemberPath, direction));
+            _currentPage = 1;
+            RefreshIssueView();
         }
 
         private void UpdatePaginationUI()
@@ -1832,7 +1851,7 @@ namespace WpfApp1.Views
 
         private void PageSize_Changed(object sender, SelectionChangedEventArgs e)
         {
-            if (CbPageSize.SelectedItem is not ComboBoxItem item) return;
+            if (CbPageSize?.SelectedItem is not ComboBoxItem item) return;
             if (!int.TryParse(item.Content.ToString(), out int newSize)) return;
 
             _pageSize = newSize;
@@ -1843,12 +1862,14 @@ namespace WpfApp1.Views
         private void CbIssueTypeFilter_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             _currentIssueTypeFilter = CbIssueTypeFilter.SelectedItem as string ?? AllIssueTypesOption;
+            _currentPage = 1;
             RefreshIssueView();
         }
 
         private void TxtIssueSearch_TextChanged(object sender, TextChangedEventArgs e)
         {
             _issueSearchKeyword = TxtIssueSearch.Text.Trim();
+            _currentPage = 1;
             RefreshIssueView();
         }
 
@@ -2136,6 +2157,7 @@ namespace WpfApp1.Views
             _lastResult = null;
             _issueView = null;
             _exportedReportPath = null;
+            RefreshIssueView();
 
             // UI 状态
             BtnRunValidation.IsEnabled = false;
@@ -2163,8 +2185,9 @@ namespace WpfApp1.Views
                 bool skipIntFormat = ChkSkipIntFormat.IsChecked == true;
                 bool skipUuidFormat = ChkSkipUuidFormat.IsChecked == true;
                 bool skipDateTimeFormat = ChkSkipDateTimeFormat.IsChecked == true;
+                CommitIgnoredActualValues();
                 var ignoredActualValues = ChkSkipActualValues.IsChecked == true
-                    ? ParseIgnoredActualValues(TxtIgnoredActualValues.Text)
+                    ? _ignoredActualValueTags.ToHashSet(StringComparer.OrdinalIgnoreCase)
                     : new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 _lastResult = await ValidationEngine.RunAsync(
                     _targetColumns, _sourceData, _mappings,

@@ -1471,14 +1471,28 @@
                                                FontSize="13"
                                                FontWeight="SemiBold"
                                                Foreground="#172033"/>
-                                    <TextBlock Text="输入多个值用逗号、分号、换行或空格分隔，空白值仍按必填校验。"
+                                    <TextBlock Text="多个值用逗号、分号、换行或空格分隔；修改后点击「开始校验」生效，空白值仍按必填校验。"
                                                Margin="12,1,0,0"
                                                FontSize="11"
+                                               TextWrapping="Wrap"
                                                Foreground="#8291A7"/>
                                 </DockPanel>
 
                                 <Border BorderBrush="#E1E8F2" BorderThickness="1" CornerRadius="8" Padding="10,8">
                                     <DockPanel LastChildFill="True">
+                                        <DockPanel DockPanel.Dock="Top" LastChildFill="True" Margin="0,0,0,8">
+                                            <Button x:Name="BtnAddIgnoredActualValues"
+                                                    DockPanel.Dock="Right"
+                                                    Content="添加"
+                                                    Style="{DynamicResource ButtonGhost}"
+                                                    Padding="12,6" FontSize="12" Margin="8,0,0,0"
+                                                    Click="BtnAddIgnoredActualValues_Click"/>
+                                            <TextBox x:Name="TxtIgnoredActualValues"
+                                                     Style="{StaticResource TextBoxStandard}"
+                                                     MinHeight="32" FontSize="12" Padding="8,5"
+                                                     ToolTip="输入忽略值，按 Enter 或点击添加；含分隔符的完整值可从明细中选中加入"
+                                                     KeyDown="TxtIgnoredActualValues_KeyDown"/>
+                                        </DockPanel>
                                         <Button x:Name="BtnClearIgnoredActualValues"
                                                 DockPanel.Dock="Right"
                                                 Content="清空"
@@ -1495,7 +1509,9 @@
                                                 FontSize="12"
                                                 Margin="8,0,0,0"
                                                 Click="BtnAddSelectedActualValue_Click"/>
-                                        <WrapPanel VerticalAlignment="Center">
+                                        <ScrollViewer MaxHeight="84" VerticalAlignment="Center"
+                                                      VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
                                             <ItemsControl x:Name="IgnoredValuesItems">
                                                 <ItemsControl.ItemsPanel>
                                                     <ItemsPanelTemplate>
@@ -1512,6 +1528,9 @@
                                                                 Margin="0,0,6,6">
                                                             <DockPanel LastChildFill="False">
                                                                 <TextBlock Text="{Binding}"
+                                                                           MaxWidth="180"
+                                                                           TextTrimming="CharacterEllipsis"
+                                                                           ToolTip="{Binding}"
                                                                            FontSize="12"
                                                                            Foreground="#334155"
                                                                            VerticalAlignment="Center"/>
@@ -1532,10 +1551,7 @@
                                                     </DataTemplate>
                                                 </ItemsControl.ItemTemplate>
                                             </ItemsControl>
-                                        </WrapPanel>
-                                        <TextBox x:Name="TxtIgnoredActualValues"
-                                                 Text="-"
-                                                 Visibility="Collapsed"/>
+                                        </ScrollViewer>
                                     </DockPanel>
                                 </Border>
                             </StackPanel>
@@ -1634,9 +1650,9 @@
                     </Grid>
 
                     <!-- 错误列表 DataGrid -->
-                    <Border Style="{StaticResource MappingCard}" MinHeight="400">
-                        <DockPanel LastChildFill="True">
-                            <Grid DockPanel.Dock="Top" Margin="0,0,0,14">
+                    <Border Style="{StaticResource MappingCard}">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*"/>
                                     <ColumnDefinition Width="Auto"/>
@@ -1694,13 +1710,15 @@
                                         FontSize="12"
                                         Click="BtnRefreshIssueView_Click"/>
                             </Grid>
-                            <Border BorderBrush="#E5EDF8" BorderThickness="1" CornerRadius="0" Margin="0,0,0,12">
+                            <Border BorderBrush="#E5EDF8" BorderThickness="1" CornerRadius="0">
                             <DataGrid x:Name="DgIssues"
+                                      MinHeight="180" MaxHeight="360"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
                                       CanUserDeleteRows="False"
                                       CanUserReorderColumns="False"
                                       CanUserSortColumns="True"
+                                      Sorting="DgIssues_Sorting"
                                       CanUserResizeColumns="True"
                                       CanUserResizeRows="False"
                                       IsReadOnly="True"
@@ -1733,7 +1751,7 @@
                                     <!-- 序号 -->
                                     <DataGridTextColumn Header="序号" Width="0.45*" MinWidth="52">
                                         <DataGridTextColumn.Binding>
-                                            <Binding Path="PageRowNumber"/>
+                                            <Binding Path="RowNumber"/>
                                         </DataGridTextColumn.Binding>
                                     </DataGridTextColumn>
                                     <DataGridTextColumn Header="主键" Binding="{Binding PrimaryKeyDisplay}" Width="1.5*" MinWidth="180" ElementStyle="{StaticResource IssueCellText}"/>
@@ -1805,11 +1823,11 @@
                                     <TextBlock Grid.Column="2" VerticalAlignment="Center" FontSize="12" Foreground="#64748B">
                                         <Run Text="共"/>
                                         <Run x:Name="RunTotalIssues" Text="0" FontWeight="SemiBold" Foreground="#334155"/>
-                                        <Run Text="条错误"/>
+                                        <Run Text="条明细"/>
                                     </TextBlock>
                                 </Grid>
                             </Border>
-                        </DockPanel>
+                        </StackPanel>
                     </Border>
 
                     <Border x:Name="ExportStatusPanel"

@@ -398,14 +398,16 @@
                             </WrapPanel>
                         </DockPanel>
                         <TextBlock x:Name="TxtSqlStats" Text="" FontSize="12" Foreground="#7B8EAD" TextWrapping="Wrap" Margin="0,0,0,8"/>
-                        <Grid Height="600" Background="#1E293B" ClipToBounds="True">
-                            <TextBox x:Name="TxtSqlOutput" IsReadOnly="True" IsUndoEnabled="False" TextWrapping="Wrap" VerticalContentAlignment="Top"
-                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" FontSize="13"
-                                 FontFamily="Consolas, 'Courier New'" IsInactiveSelectionHighlightEnabled="True"
-                                 SelectionBrush="#426A9D" SelectionOpacity="0.6" CaretBrush="#F59E0B"
-                                 Background="Transparent" Foreground="Transparent" Padding="12,8" BorderThickness="0" AcceptsReturn="True"/>
-                            <controls:SqlSyntaxLayer Editor="{Binding ElementName=TxtSqlOutput}"/>
-                        </Grid>
+                        <Border Height="600" Background="#1E293B" CornerRadius="8" ClipToBounds="True">
+                            <Grid>
+                                <TextBox x:Name="TxtSqlOutput" IsReadOnly="True" IsUndoEnabled="False" TextWrapping="Wrap" VerticalContentAlignment="Top"
+                                     VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" FontSize="13"
+                                     FontFamily="Consolas, 'Courier New'" IsInactiveSelectionHighlightEnabled="True"
+                                     SelectionBrush="#426A9D" SelectionOpacity="0.6" CaretBrush="#F59E0B"
+                                     Background="Transparent" Foreground="Transparent" Padding="12,8" BorderThickness="0" AcceptsReturn="True"/>
+                                <controls:SqlSyntaxLayer Editor="{Binding ElementName=TxtSqlOutput}"/>
+                            </Grid>
+                        </Border>
                     </StackPanel>
                 </Border>
             </StackPanel>
