@@ -10,10 +10,10 @@
     <AssemblyName>CCToolbox</AssemblyName>
     <RootNamespace>WpfApp1</RootNamespace>
     <!-- 版本号唯一真源：发新版时只改这里，界面与更新检查在运行时读取程序集元数据。 -->
-    <Version>2.3.8</Version>
-    <AssemblyVersion>2.3.8.0</AssemblyVersion>
-    <FileVersion>2.3.8.0</FileVersion>
-    <InformationalVersion>2.3.8</InformationalVersion>
+    <Version>2.3.9</Version>
+    <AssemblyVersion>2.3.9.0</AssemblyVersion>
+    <FileVersion>2.3.9.0</FileVersion>
+    <InformationalVersion>2.3.9</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

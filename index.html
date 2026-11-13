@@ -19,6 +19,7 @@
   3. 站点地址：https://chenmo02.github.io/CCToolbox/
   4. 链接已指向真实仓库 chenmo02/CCToolbox；若仓库再次改名，全局替换 github.com/chenmo02/CCToolbox。
   5. 版本信息是静态快照，发新版后请同步更新「下载」区的 Release 说明，并运行 scripts/publish-update-manifest.ps1 重新生成 updates/stable/latest.json。
+  6. 国内备用下载（蓝奏云）地址与提取密码见 #download 的「国内下载」卡；换链接或改密码时，同步修改该卡、首屏提示、FAQ 与页脚链接。
   风格：Hand-Drawn Doodle（stylekit.top），配色 / 虚线 / 彩影 / 胶带遵循其 design.md。
 -->
 <style>
@@ -187,15 +188,25 @@ button{font:inherit;color:inherit;cursor:pointer}
 .faq p{margin-top:14px;font-size:15px;line-height:1.75}
 
 /* ---------- 下载 ---------- */
-.dl-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px}
+.hero-mirror{margin-top:8px;font-size:14px}
+.hero-mirror a{border-bottom:2px wavy var(--red);font-weight:800}
+.hero-mirror a:hover{background:var(--yellow)}
+.dl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
 .dl-card{padding:36px 32px}
-.dl-card h3{font-size:28px}
+.dl-card h3{font-size:clamp(22px,2.3vw,28px)}
 .dl-card .dl-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
 .dl-meta{margin-top:22px;font-size:13px;line-height:1.8;opacity:.85}
 .dl-meta strong{color:var(--olive)}
 .dl-alt{list-style:none;margin-top:14px}
 .dl-alt li{padding:8px 0 8px 22px;position:relative;font-size:14px;line-height:1.6}
 .dl-alt li::before{content:"";position:absolute;left:0;top:15px;width:10px;height:10px;background:var(--red);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%}
+.dl-pw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px}
+.dl-pw .pw-label{font-size:14px;font-weight:800}
+.dl-pw code{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:.16em;background:var(--yellow);border:2px dashed var(--ink);padding:1px 12px;box-shadow:3px 3px 0 var(--ink)}
+.copy-btn{background:var(--paper);border:2px dashed var(--ink);border-radius:2px;padding:5px 12px;font-size:13px;font-weight:800;box-shadow:3px 3px 0 var(--teal);transition:150ms linear}
+.copy-btn:hover{background:var(--teal);transform:translate(-1px,-2px)}
+.copy-btn:active{transform:translate(2px,2px);box-shadow:none}
+.copy-btn.done{background:var(--teal)}
 
 /* ---------- 页脚 ---------- */
 .footer{margin-top:96px;border-top:3px dashed var(--ink);padding:36px 0 48px;position:relative;z-index:1}
@@ -279,6 +290,7 @@ button{font:inherit;color:inherit;cursor:pointer}
           <a class="btn btn-teal" href="#guide">三分钟上手</a>
         </div>
         <p class="hero-meta">Windows 10 19041+ · x64 · 免安装 · 约 70 MB 单文件 · by 悲伤番茄</p>
+        <p class="hero-meta hero-mirror">GitHub 下载太慢？<a href="#download">使用国内备用下载（蓝奏云）</a></p>
       </div>
       <div class="hero-art">
         <svg class="circle-mark" viewBox="0 0 180 64" aria-hidden="true"><path d="M12 34 C10 12 168 6 174 30 C180 54 60 62 16 48"/></svg>
@@ -447,6 +459,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <details><summary>杀毒软件或 SmartScreen 报毒怎么办？</summary><p>当前 exe 未做数字签名，加上需要读写文件与操作剪贴板，容易被启发式规则误判。可以核对 Releases 页面的校验信息、把文件加入信任，或直接按仓库 README 的命令从源码构建。</p></details>
       <details><summary>怎么检查更新？程序会自动升级吗？</summary><p>到「系统参数配置 → 软件更新」点「立即检查」；程序启动时也会静默检查一次（可关闭）。发现新版本后只提示并打开 GitHub Releases 下载页，<b>不会自动下载或替换文件</b>。无公网时可在设置里点「选择本地清单」，或把更新源改成共享目录中的 <span class="tag">latest.json</span>。</p></details>
       <details><summary>画板打不开？</summary><p>请确认系统已安装 WebView2 Runtime 且能访问 excalidraw.com。其余核心功能离线可用；除画板外只有检查更新会联网，且可关闭。</p></details>
+      <details><summary>GitHub 下载太慢或打不开怎么办？</summary><p>用「下载」区的国内备用地址（蓝奏云）：<a href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener" style="border-bottom:2px wavy var(--red)">打开国内下载</a>，页面提示输入提取码时填 <span class="tag tag-y">dvqy</span>，下载卡上也有一键复制按钮。镜像由第三方网盘托管，版本可能晚于 Releases 同步；想确认是否为最新版，请对照 GitHub Releases 的版本号。</p></details>
     </div>
   </section>
 
@@ -462,9 +475,20 @@ button{font:inherit;color:inherit;cursor:pointer}
         <h3>GitHub Releases</h3>
         <p>官方最新版始终在这里，同时保留历史版本与源码。下载 <span class="tag">CCToolbox.exe</span> 后即可运行。</p>
         <div class="dl-buttons"><a class="btn" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">前往下载</a></div>
-        <p class="dl-meta">页面为静态快照：<strong>v2.3.8</strong>（2026-11-03）· CCToolbox.exe · 69.8 MB · Windows 10 / 11 x64。最新版本以 Releases 页面为准。</p>
+        <p class="dl-meta">页面为静态快照：<strong>v2.3.9</strong>（2026-11-13）· CCToolbox.exe · 70.0 MB · Windows 10 / 11 x64。最新版本以 Releases 页面为准。</p>
       </article>
       <article class="note teal dl-card reveal">
+        <h3>国内下载 · 蓝奏云</h3>
+        <p>国内网络访问 GitHub 较慢时用这个备用地址，下载 <span class="tag">CCToolbox.exe</span> 后双击即可运行，无需安装。</p>
+        <div class="dl-pw">
+          <span class="pw-label">提取密码</span>
+          <code id="dlPwd">dvqy</code>
+          <button type="button" class="copy-btn" id="copyPwd" aria-label="复制提取密码 dvqy">复制</button>
+        </div>
+        <div class="dl-buttons"><a class="btn btn-teal" href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener">国内下载</a></div>
+        <p class="dl-meta">蓝奏云为第三方网盘镜像，版本更新可能晚于 GitHub；<strong>最新版本以 Releases 为准</strong>。链接失效可到仓库提 Issue。</p>
+      </article>
+      <article class="note red dl-card reveal">
         <h3>源码与反馈</h3>
         <p>项目基于 .NET 10 + WPF，源码、技术说明与校验规则文档都在仓库里；遇到问题可以直接提 Issue。</p>
         <ul class="dl-alt">
@@ -490,6 +514,7 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div class="footer-links">
       <a href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub</a>
       <a href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">Releases</a>
+      <a href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener">国内下载</a>
       <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/程序说明.md" target="_blank" rel="noopener">程序说明</a>
       <a href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">反馈</a>
     </div>
