@@ -4,11 +4,13 @@
 - 站点 `https://chenmo02.github.io/CCToolbox/`，仓库 `chenmo02/CCToolbox`，Pages 源为 `main / (root)`。
 - 单文件 `index.html`，零外部依赖；程序图标 `img/app-icon.png`（由 `WpfApp1/favicon.ico` 手工转出）；`.nojekyll` 必须保留。
 - **视觉风格（用户明确偏好）**：Hand-Drawn Doodle（stylekit.top）——奶白纸 `#fffef5`、墨黑虚线、彩色实心偏移阴影、胶带/图钉/波浪线。2026-11-13 曾改为 Comic Style（粗墨线/网点/对话气泡），用户判定「不好看」，已回退，**不要再改风格**。
-- 部署：`git push origin main` 后 Pages 自动重发。本机 `github.com:22` 握手超时，SSH 走 `ssh.github.com:443`（配置在 `~/.ssh/config`）。
+- 部署：`git push origin main` 后 Pages 自动重发。本机 `github.com:22` 握手超时，SSH 走 `ssh.github.com:443`（配置在 `~/.ssh/config`）；远端已改名 `chenmo02/CCToolbox.git`，旧 remote 仍可用。
+- **文案排版约定（用户 2026-11-13 看截图后明确）**：正文不要写长句让浏览器自动折行（中文词会被从中间劈开，如「文/件」「放进/去就行」）。改为 2–3 个短句成行，句间用 `<br class="line-br">` 显式断行、断点落在句号/逗号处，配合 `text-wrap:pretty`；`line-br` 全局生效，**不要在窄屏隐藏**（隐藏后短句合并会重新劈词）。改文案后仍须与 `docs/` 事实一致。
+- 国内备用下载：蓝奏云 `https://wwbhj.lanzouu.com/b0hed08ha`，提取密码 `dvqy`；地址/密码共出现在下载卡、FAQ、页脚、首屏提示 4 处，改动需同步（index.html 头部注释第 6 条）。
 
 ## 项目约定
 - README 与官网文案使用简体中文，能力描述须与 `docs/` 事实一致，不编造功能。
-- 版本号唯一真源：`WpfApp1/WpfApp1.csproj` 的 `<Version>` = `2.3.8`（用户 2026-11-13 明确指定）；`AssemblyVersion` / `FileVersion` 同步 `2.3.8.0`，首页徽标运行时读程序集元数据、不再写死。官网下载区仍是 v2.3.8 静态快照，README 不写死版本号，历史文档里的 v2.3.3 / v2.3.5 属旧记录。
+- 版本号唯一真源：`WpfApp1/WpfApp1.csproj` 的 `<Version>`，当前 `2.3.9`（2026-11-13 晚间发版；此前 2.3.8）；`AssemblyVersion` / `FileVersion` 同步 `.0`，首页徽标运行时读程序集元数据、不再写死。官网下载区为静态快照，发版由 `scripts\一键打包.bat` 同步；README 不写死版本号，历史文档里的 v2.3.3 / v2.3.5 / v2.3.8 属旧记录。
 
 - **UI 偏好（用户 2026-11-13 看截图后明确）**：首页欢迎卡只放品牌、标题与版本徽标，次要操作不要塞在这里；检查更新等入口统一放「系统参数配置」。设置页不要用 CheckBox 对勾框，改用滑动开关；新增 ComboBox 必须带 `ItemContainerStyle="{DynamicResource ComboBoxItemStandard}"`，与「默认数据库类型」下拉保持一致；**不要放不可点击的占位项**（禁用 beta 之类），看得见点不了会被追问。
 - 网络实测（2026-11-13）：`chenmo02.github.io/CCToolbox/index.html` 返回 200，但本机经代理访问 `/updates/stable/latest.json` 返回 503 / 502 / 超时；`raw.githubusercontent.com` 返回 200；`github.com` 直连超时。更新清单已于 `e12ee96` push 到 main，Pages 与 raw 两个路径提供同一份文件；客户端主源最多等 4 秒后自动回退 raw（`1627112`），端到端验证默认源返回 UpToDate。公网不通时也可用设置页「选择本地清单」或 UNC 路径。

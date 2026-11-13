@@ -95,6 +95,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .sec-head{max-width:760px;margin-bottom:48px}
 .sec-head h2{font-family:var(--font-display);font-size:clamp(28px,3.6vw,40px);font-weight:800;line-height:1.15;transform:rotate(-1deg);transform-origin:left center}
 .sec-head p{margin-top:18px;font-size:17px;max-width:680px}
+/* 手写便签式断行：<br class="line-br"> 只落在句号/逗号处；短句内部仍自然折行 */
+.sec-head p,.note p,.step p,.limit,.feature-list li{text-wrap:pretty}
 .grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
 .grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
 .grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
@@ -312,39 +314,39 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="stat reveal"><b>0</b><span>次业务数据上传</span></div>
       <div class="stat reveal"><b>1</b><span>个 exe，免安装</span></div>
     </div>
-    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」指核心文件处理；在线画板需联网加载 Excalidraw，检查更新需读取公开清单（可关闭）；发布产物为单个自包含 exe（约 70 MB）。</p>
+    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」仅指核心文件处理。<br class="line-br">画板需联网加载 Excalidraw，检查更新需读公开清单（可关闭）；发布产物是单个自包含 exe，约 70 MB。</p>
   </section>
 
   <section class="section wrap" id="why">
     <div class="sec-head reveal">
       <span class="kicker">01 / 为什么</span>
       <h2>少一些重复操作，<span class="hl">多一些清晰结果</span></h2>
-      <p>实施现场的麻烦通常不是「不会做」，而是同一件事要反复手工确认。这个工具把几个高频环节收在一起，并且让每一步的结果都能拿出来复核。</p>
+      <p>费时间的往往不是「不会做」，而是同一件事反复确认。<br class="line-br">把这些高频环节收进一个窗口，每一步都能拿出结果来复核。</p>
     </div>
     <div class="grid-3">
       <article class="note tilt-l reveal">
         <h3>表格转 SQL 不再手工拼</h3>
-        <p>导入 Excel / CSV / DBF，预览并修正内容后生成建表与批量 INSERT 脚本；四类数据库的标识符、临时表与批量语法自动适配。</p>
+        <p>拖进 Excel / CSV / DBF，边看边改。<br class="line-br">建表与 INSERT 一次生成。<br class="line-br">标识符、临时表、批量语法自动适配。</p>
       </article>
       <article class="note reveal">
         <h3>导入报错能定位到行</h3>
-        <p>按目标表结构建立字段映射，逐行检查类型与格式约束，把问题落到行号、字段和实际值，并导出带主键定位信息的 Excel 报告。</p>
+        <p>按表结构建好映射，再逐行校验。<br class="line-br">问题落到行号、字段、实际值，<br class="line-br">报告里还带主键定位，方便回查。</p>
       </article>
       <article class="note tilt-r reveal">
         <h3>前后差异一眼看全</h3>
-        <p>CSV 按行号或复合主键对比，JSON 按结构对比；新增、删除、修改与类型变化分类呈现，支持筛选与导出。</p>
+        <p>CSV 按行号或复合主键，JSON 按结构。<br class="line-br">增、删、改、类型变化，分开列清楚。<br class="line-br">筛选完，直接导出。</p>
       </article>
       <article class="note teal reveal">
         <h3>深层 JSON 不靠肉眼</h3>
-        <p>格式化、压缩、语法校验，配上可折叠的嵌套表格浏览与编辑回写，让多层对象与数组在保留上下文的前提下查看和修改。</p>
+        <p>格式化、压缩、语法校验都在。<br class="line-br">嵌套表格能折叠，改完就回写。<br class="line-br">多层对象也能连着上下文看。</p>
       </article>
       <article class="note red reveal">
         <h3>零散小事一个入口</h3>
-        <p>发票排版打印、在线画板、随手记与系统参数配置都在同一套导航里，减少来回找工具和重复设置。</p>
+        <p>发票打印、在线画板、随手记，<br class="line-br">和系统参数配置放在同一套导航里。<br class="line-br">少切几个窗口，少配几次。</p>
       </article>
       <article class="note reveal">
         <h3>结果能带走</h3>
-        <p>SQL 可以复制或保存为 <span class="tag">.sql</span>，数据与报告可导出 CSV / JSON / Excel；导出统一使用带 BOM 的 UTF-8，Excel 打开中文不乱码。</p>
+        <p>SQL 可复制，也能存成 <span class="tag">.sql</span>。<br class="line-br">数据、报告导出 CSV / JSON / Excel。<br class="line-br">统一 UTF-8 BOM，Excel 打开不乱码。</p>
       </article>
     </div>
   </section>
@@ -353,47 +355,47 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div class="sec-head reveal">
       <span class="kicker">02 / 功能</span>
       <h2>四组工具，<span class="mark">都在这一个窗口</span></h2>
-      <p>左侧导航按「数据工具 / 开发工具 / 办公工具 / 系统」分组；CSV 对比藏在系统参数配置的实用小工具里。</p>
+      <p>导航按用途分四组，数据、开发、办公、系统各归各。<br class="line-br">CSV 对比放在「系统参数配置」的实用小工具里。</p>
     </div>
     <div class="grid-2">
       <article class="note reveal">
         <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><rect class="fill" x="4" y="6" width="26" height="30"/><path d="M4 16h26M4 26h26M15 6v30M33 22h7M37 18l4 4-4 4"/></svg>
         <h3>数据工具</h3>
         <ul class="feature-list">
-          <li>首页数据概览：快捷入口与构建信息</li>
-          <li>临时数据建表：表格 → 建表与 INSERT 脚本</li>
-          <li>CSV 文件预览：编码识别、全表搜索定位</li>
-          <li>快速建数据表：粘贴 INSERT 反推 CREATE TABLE</li>
-          <li>数据验证排查：四步向导 + 三 Sheet 报告</li>
-          <li>CSV 对比：行号 / 复合主键两种匹配方式</li>
+          <li>首页概览：快捷入口与构建信息</li>
+          <li>临时数据建表：表格转建表 + INSERT</li>
+          <li>CSV 文件预览：自动认编码，全表搜得到</li>
+          <li>快速建数据表：贴一段 INSERT，反推 CREATE TABLE</li>
+          <li>数据验证排查：四步向导，三 Sheet 报告</li>
+          <li>CSV 对比：按行号，或按复合主键</li>
         </ul>
       </article>
       <article class="note reveal">
         <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M16 6c-6 0-6 7-6 10s0 6-4 6c6 0 6 6 6 10s0 6 6 6M28 6c6 0 6 7 6 10s0 6 4 6c-6 0-6 6-6 10s0 6-6 6"/></svg>
         <h3>开发工具</h3>
         <ul class="feature-list">
-          <li>JSON 数据解析：双栏编辑、嵌套 GRID、双搜索</li>
-          <li>JSON 内容比对：差异列表与双侧行号定位</li>
-          <li>在线绘图工具：内嵌 Excalidraw，导出 PNG / SVG</li>
+          <li>JSON 数据解析：双栏编辑、嵌套表格、双搜索</li>
+          <li>JSON 内容比对：差异列表，两侧行号定位</li>
+          <li>在线绘图：内嵌 Excalidraw，导出 PNG / SVG</li>
         </ul>
-        <p style="margin-top:16px;font-size:14px">画板页面需要联网加载 Excalidraw，并依赖 WebView2 Runtime。</p>
+        <p style="margin-top:16px;font-size:14px">画板要联网加载 Excalidraw，也依赖 WebView2 Runtime。</p>
       </article>
       <article class="note teal reveal">
         <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M9 5h21l6 6v28H9zM30 5v7h6M14 20h17M14 27h17M14 34h10"/></svg>
         <h3>办公工具</h3>
         <ul class="feature-list">
-          <li>发票打印操作：PDF 与图片预览、排版、模板与打印</li>
-          <li>支持每页 1 / 2 / 4 张、纸张方向、边距与裁剪线</li>
-          <li>OFD 目前只能选择登记，尚未实现渲染</li>
+          <li>发票打印：PDF / 图片预览、排版、模板、打印</li>
+          <li>每页 1 / 2 / 4 张，方向、边距、裁剪线都能调</li>
+          <li>OFD 目前只能登记，还不能渲染</li>
         </ul>
       </article>
       <article class="note red reveal">
         <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="15"/><path d="M22 7v6M22 31v6M7 22h6M31 22h6M22 17v10M17 22h10"/></svg>
         <h3>系统与顺手的小东西</h3>
         <ul class="feature-list">
-          <li>系统参数配置：默认数据库、表名、批量行数、导出路径</li>
-          <li>随手记：右下角悬浮球，关闭即自动保存</li>
-          <li>浅色 / 深色主题字典（当前无设置页切换入口）</li>
+          <li>系统参数配置：默认库、表名、批量行数、导出路径</li>
+          <li>随手记：右下角悬浮球，关掉就自动保存</li>
+          <li>浅色 / 深色主题字典（暂无切换入口）</li>
         </ul>
       </article>
     </div>
@@ -415,13 +417,13 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div class="sec-head reveal">
       <span class="kicker">03 / 上手</span>
       <h2>放进数据，<span class="hl">带走结果</span></h2>
-      <p>不需要连接串、不需要账号、不需要先建工程。打开 exe，选一个页面，把文件或文本放进去就行。</p>
+      <p>不用装运行环境，不用账号，也不用先建工程。<br class="line-br">双击 exe，挑一个页面，把文件或文本放进去就好。</p>
     </div>
     <div class="steps">
-      <div class="step reveal"><span class="num">1</span><h3>放进数据</h3><p>拖入 Excel / CSV / DBF，或粘贴一段 INSERT、JSON、DDL。文件解析与编码识别在本地完成。</p></div>
-      <div class="step reveal"><span class="num">2</span><h3>看一眼结果</h3><p>在可编辑表格里预览并修正，选好数据库和表名，生成建表与插入脚本；SQL 可以直接复制或保存。</p></div>
-      <div class="step reveal"><span class="num">3</span><h3>核一遍问题</h3><p>确认字段映射后逐行校验，或拿两份 CSV / JSON 做差异对比。问题定位到行号、字段与实际值。</p></div>
-      <div class="step reveal"><span class="num">4</span><h3>带走成果</h3><p>导出 SQL、CSV、JSON 或 Excel 问题报告，拿到数据库客户端里执行，或直接交给同事复核。</p></div>
+      <div class="step reveal"><span class="num">1</span><h3>放进数据</h3><p>拖入 Excel / CSV / DBF，<br class="line-br">或粘贴 INSERT、JSON、DDL。<br class="line-br">解析与认编码都在本机完成。</p></div>
+      <div class="step reveal"><span class="num">2</span><h3>看一眼结果</h3><p>表格里直接改，选好库和表。<br class="line-br">建表与 INSERT 一次生成。<br class="line-br">复制走，或存成 .sql。</p></div>
+      <div class="step reveal"><span class="num">3</span><h3>核一遍问题</h3><p>确认映射后逐行校验，<br class="line-br">或拿两份 CSV / JSON 比差异。<br class="line-br">问题落到行号、字段、实际值。</p></div>
+      <div class="step reveal"><span class="num">4</span><h3>带走成果</h3><p>导出 SQL、CSV、JSON、Excel，<br class="line-br">拿到数据库客户端执行，<br class="line-br">或直接交给同事复核。</p></div>
     </div>
   </section>
 
@@ -429,18 +431,18 @@ button{font:inherit;color:inherit;cursor:pointer}
     <div class="sec-head reveal">
       <span class="kicker">04 / 边界</span>
       <h2>能做什么，<span class="mark">不能做什么</span>，都写清楚</h2>
-      <p>下面是当前版本真实的限制。把它放在官网，比放在用户踩坑之后更好。</p>
+      <p>以下都是当前版本真实存在的限制。<br class="line-br">先写清楚，省得踩了坑才发现做不到。</p>
     </div>
     <div class="grid-3">
-      <div class="limit reveal"><b>不直连数据库</b>SQL 只生成、不执行；字段校验也基于文本与文件，脚本由你在数据库客户端运行。</div>
-      <div class="limit reveal"><b>校验范围有限</b>目前仅支持 SQL Server / PostgreSQL，覆盖类型与格式约束，不校验业务语义、跨字段关系、外键存在性与 JSON Schema。</div>
-      <div class="limit reveal"><b>建表列全是字符串</b>「临时数据建表」把所有列按字符串输出，依赖目标库隐式转换；需要精确类型请用「快速建数据表」。</div>
-      <div class="limit reveal"><b>OFD 尚未渲染</b>可以选择登记，但预览与打印为空，请使用 PDF 或图片。</div>
-      <div class="limit reveal"><b>画板依赖外网</b>在线绘图通过 WebView2 加载 Excalidraw，需要 WebView2 Runtime 与网络连接。</div>
-      <div class="limit reveal"><b>配置写在程序目录</b><span class="tag">settings.json</span> 等文件在 exe 同目录，放到只读安装位置会保存失败。</div>
-      <div class="limit reveal"><b>部分状态不持久</b>CSV 对比的页面状态只在进程内存，退出程序即丢失。</div>
-      <div class="limit reveal"><b>大文件有阈值</b>超过 10 万行生成前会确认；SQL 超过 5000 行时只预览前 1000 行（复制与保存仍完整）；校验明细上限 1 万条。</div>
-      <div class="limit reveal"><b>exe 未签名</b>可能被 SmartScreen 或杀软启发式误报，可核对 Releases 校验信息或从源码自行构建。</div>
+      <div class="limit reveal"><b>不直连数据库</b>SQL 只生成，不执行。<br class="line-br">校验也只看文本和文件，<br class="line-br">脚本拿到数据库客户端里跑。</div>
+      <div class="limit reveal"><b>校验范围有限</b>只支持 SQL Server / PostgreSQL。<br class="line-br">校验类型和格式，不管业务语义；<br class="line-br">跨字段、外键、JSON Schema 也不查。</div>
+      <div class="limit reveal"><b>建表列全是字符串</b>「临时数据建表」的列全是字符串，<br class="line-br">靠目标库隐式转换。<br class="line-br">要精确类型，请用「快速建数据表」。</div>
+      <div class="limit reveal"><b>OFD 尚未渲染</b>只能选来登记，预览和打印是空的。<br class="line-br">请用 PDF 或图片。</div>
+      <div class="limit reveal"><b>画板依赖外网</b>画板经 WebView2 加载 Excalidraw。<br class="line-br">需要 Runtime，也要联网。</div>
+      <div class="limit reveal"><b>配置写在程序目录</b><span class="tag">settings.json</span> 等文件挨着 exe。<br class="line-br">放进只读目录，会保存失败。</div>
+      <div class="limit reveal"><b>部分状态不持久</b>CSV 对比的页面状态只在内存里。<br class="line-br">退出程序就没了。</div>
+      <div class="limit reveal"><b>大文件有阈值</b>10 万行以上，生成前先确认。<br class="line-br">SQL 超 5000 行只看前 1000 行，<br class="line-br">复制保存仍完整；明细上限 1 万条。</div>
+      <div class="limit reveal"><b>exe 未签名</b>SmartScreen 或杀软可能误报。<br class="line-br">可核对 Releases 校验信息，<br class="line-br">或按源码自行构建。</div>
     </div>
     <p class="limits-foot">完整技术说明见仓库内「程序说明」；校验规则、在线更新方案均以 Markdown 形式随源码提供。</p>
   </section>
