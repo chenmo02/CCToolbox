@@ -18,7 +18,7 @@
   2. Settings → Pages → Deploy from a branch → main / (root) → Save。
   3. 站点地址：https://chenmo02.github.io/CCToolbox/
   4. 链接已指向真实仓库 chenmo02/CCToolbox；若仓库再次改名，全局替换 github.com/chenmo02/CCToolbox。
-  5. 版本信息是静态快照，发新版后请同步更新「下载」区的 Release 说明。
+  5. 版本信息是静态快照，发新版后请同步更新「下载」区的 Release 说明，并运行 scripts/publish-update-manifest.ps1 重新生成 updates/stable/latest.json。
   风格：Hand-Drawn Doodle（stylekit.top），配色 / 虚线 / 彩影 / 胶带遵循其 design.md。
 -->
 <style>
@@ -300,7 +300,7 @@ button{font:inherit;color:inherit;cursor:pointer}
       <div class="stat reveal"><b>0</b><span>次业务数据上传</span></div>
       <div class="stat reveal"><b>1</b><span>个 exe，免安装</span></div>
     </div>
-    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」指核心文件处理，在线画板需联网加载 Excalidraw；发布产物为单个自包含 exe（约 70 MB）。</p>
+    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」指核心文件处理；在线画板需联网加载 Excalidraw，检查更新需读取公开清单（可关闭）；发布产物为单个自包含 exe（约 70 MB）。</p>
   </section>
 
   <section class="section wrap" id="why">
@@ -364,7 +364,7 @@ button{font:inherit;color:inherit;cursor:pointer}
           <li>JSON 内容比对：差异列表与双侧行号定位</li>
           <li>在线绘图工具：内嵌 Excalidraw，导出 PNG / SVG</li>
         </ul>
-        <p style="margin-top:16px;font-size:14px">画板是唯一需要联网的页面，依赖 WebView2 Runtime。</p>
+        <p style="margin-top:16px;font-size:14px">画板页面需要联网加载 Excalidraw，并依赖 WebView2 Runtime。</p>
       </article>
       <article class="note teal reveal">
         <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M9 5h21l6 6v28H9zM30 5v7h6M14 20h17M14 27h17M14 34h10"/></svg>
@@ -440,12 +440,13 @@ button{font:inherit;color:inherit;cursor:pointer}
     </div>
     <div class="faq reveal">
       <details><summary>需要安装 .NET 或 VC++ 运行库吗？</summary><p>不需要。发布包是自包含单文件 exe，依赖已打进程序；只有从源码调试运行才需要 .NET 10 SDK。在线画板另需系统已安装 WebView2 Runtime。</p></details>
-      <details><summary>会上传或收集我的数据吗？</summary><p>核心功能（表格转换、CSV 预览与对比、JSON 处理、数据校验、发票打印）全部在本机内存完成，不连数据库、不上传文件。唯一的联网点是「在线绘图工具」通过 WebView2 加载 excalidraw.com。</p></details>
+      <details><summary>会上传或收集我的数据吗？</summary><p>核心功能（表格转换、CSV 预览与对比、JSON 处理、数据校验、发票打印）全部在本机内存完成，不连数据库、不上传文件。联网点只有两个：「在线绘图工具」通过 WebView2 加载 excalidraw.com，以及「检查更新」读取公开的 <span class="tag">latest.json</span> 清单（不上传任何数据，可在设置页关闭）。</p></details>
       <details><summary>支持哪些数据库？</summary><p>建表与 INSERT 脚本生成支持 PostgreSQL、SQL Server、MySQL、Oracle 四种；「数据验证排查」目前只支持 SQL Server 与 PostgreSQL。</p></details>
       <details><summary>支持哪些文件格式？</summary><p>表格导入支持 <span class="tag">.xlsx</span> <span class="tag">.xls</span> <span class="tag">.csv</span> <span class="tag">.dbf</span>；分隔文本预览与对比支持 <span class="tag">.csv</span> <span class="tag">.tsv</span> <span class="tag">.txt</span> <span class="tag">.dbf</span> <span class="tag">.bdf</span>；发票支持 PDF 与 JPG / PNG / BMP / TIF，OFD 除外。</p></details>
       <details><summary>配置文件在哪里？换电脑怎么办？</summary><p><span class="tag">settings.json</span>、<span class="tag">invoice_templates.json</span>、<span class="tag">invoice_print_history.json</span> 写在 exe 同目录；随手记在 <span class="tag-y tag">%LOCALAPPDATA%\CCToolbox\quick-notes.txt</span>。换机时连同这几个文件一起拷贝即可。</p></details>
       <details><summary>杀毒软件或 SmartScreen 报毒怎么办？</summary><p>当前 exe 未做数字签名，加上需要读写文件与操作剪贴板，容易被启发式规则误判。可以核对 Releases 页面的校验信息、把文件加入信任，或直接按仓库 README 的命令从源码构建。</p></details>
-      <details><summary>画板打不开？</summary><p>请确认系统已安装 WebView2 Runtime 且能访问 excalidraw.com。画板是唯一依赖网络的页面，其余功能离线可用。</p></details>
+      <details><summary>怎么检查更新？程序会自动升级吗？</summary><p>到「系统参数配置 → 软件更新」点「立即检查」；程序启动时也会静默检查一次（可关闭）。发现新版本后只提示并打开 GitHub Releases 下载页，<b>不会自动下载或替换文件</b>。无公网时可在设置里点「选择本地清单」，或把更新源改成共享目录中的 <span class="tag">latest.json</span>。</p></details>
+      <details><summary>画板打不开？</summary><p>请确认系统已安装 WebView2 Runtime 且能访问 excalidraw.com。其余核心功能离线可用；除画板外只有检查更新会联网，且可关闭。</p></details>
     </div>
   </section>
 

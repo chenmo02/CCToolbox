@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Threading;
+using WpfApp1.Services;
 
 namespace CCToolbox
 {
@@ -17,6 +18,23 @@ namespace CCToolbox
 
             // 捕获 Task 中未观察到的异常
             TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
+
+            // 启动后延迟静默检查更新：失败一律写日志，不弹窗、不阻塞主窗口
+            _ = RunSilentUpdateCheckAsync();
+        }
+
+        private static async Task RunSilentUpdateCheckAsync()
+        {
+            try
+            {
+                await Task.Delay(TimeSpan.FromSeconds(4)).ConfigureAwait(false);
+                await UpdateService.CheckAsync(manual: false).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // 双保险：UpdateService 内部已收敛异常，这里防止任何遗漏变成未观察任务异常
+                UpdateLogger.Warn($"启动检查更新异常：{ex.Message}");
+            }
         }
 
         private void App_DispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)

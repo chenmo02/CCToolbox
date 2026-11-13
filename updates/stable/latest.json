@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "product": "CCToolbox",
+  "channel": "stable",
+  "version": "2.3.8",
+  "releaseDate": "2026-11-03",
+  "minimumVersion": "2.3.0",
+  "mandatory": false,
+  "downloadUrl": "https://github.com/chenmo02/CCToolbox/releases/latest",
+  "releaseNotesUrl": "https://github.com/chenmo02/CCToolbox/releases/tag/v2.3.8",
+  "changelog": [
+    "完整更新记录请查看 GitHub Releases 页面"
+  ],
+  "package": {
+    "url": "https://github.com/chenmo02/CCToolbox/releases/download/v2.3.8/CCToolbox.exe",
+    "rid": "win-x64"
+  }
+}

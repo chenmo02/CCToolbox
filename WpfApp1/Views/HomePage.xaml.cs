@@ -1,8 +1,8 @@
 using System.Diagnostics;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
 using WpfApp1;
+using WpfApp1.Services;
 
 namespace WpfApp1.Views
 {
@@ -11,9 +11,8 @@ namespace WpfApp1.Views
         public HomePage()
         {
             InitializeComponent();
-            TxtReleaseDate.Text = typeof(HomePage).Assembly.GetCustomAttributes<AssemblyMetadataAttribute>()
-                .Single(attribute => attribute.Key == "ReleaseDate").Value;
-            //TxtRuntime.Text = $".NET {Environment.Version.Major}";
+            TxtVersionBadge.Text = VersionInfo.DisplayVersion;
+            TxtReleaseDate.Text = VersionInfo.ReleaseDate;
         }
 
         private void HomeScrollViewer_SizeChanged(object sender, SizeChangedEventArgs e)

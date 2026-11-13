@@ -9,10 +9,11 @@
     <ApplicationIcon>favicon.ico</ApplicationIcon>
     <AssemblyName>CCToolbox</AssemblyName>
     <RootNamespace>WpfApp1</RootNamespace>
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
-    <InformationalVersion>2.0.0</InformationalVersion>
+    <!-- 版本号唯一真源：发新版时只改这里，界面与更新检查在运行时读取程序集元数据。 -->
+    <Version>2.3.8</Version>
+    <AssemblyVersion>2.3.8.0</AssemblyVersion>
+    <FileVersion>2.3.8.0</FileVersion>
+    <InformationalVersion>2.3.8</InformationalVersion>
   </PropertyGroup>
 
   <ItemGroup>

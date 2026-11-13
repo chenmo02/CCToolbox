@@ -406,8 +406,8 @@
                                             </Border.Background>
                                             <StackPanel VerticalAlignment="Center">
                                                 <TextBlock Text="当前版本" FontSize="12" Foreground="#E7EAFF" HorizontalAlignment="Center"/>
-                                                <!-- 发布前改版本号，背面同步此值。 -->
-                                                <TextBlock x:Name="TxtVersionBadge" Text="v2.3.8" FontSize="28" FontWeight="Bold"
+                                                <!-- 版本号由 HomePage 构造函数从程序集元数据读取，背面通过绑定同步。 -->
+                                                <TextBlock x:Name="TxtVersionBadge" Text="" FontSize="28" FontWeight="Bold"
                                                            Foreground="White" HorizontalAlignment="Center" Margin="0,4,0,0"/>
                                             </StackPanel>
                                         </Border>
