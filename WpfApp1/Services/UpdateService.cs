@@ -118,11 +118,19 @@ public static class UpdateService
     /// </summary>
     private static async Task<string> FetchWithFallbackAsync(string source, CancellationToken cancellationToken)
     {
-        try
+        if (!IsDefaultManifestUrl(source))
         {
             return await FetchManifestAsync(source, cancellationToken).ConfigureAwait(false);
         }
-        catch (Exception ex) when (IsDefaultManifestUrl(source) && !cancellationToken.IsCancellationRequested)
+
+        try
+        {
+            // 主源最多等 4 秒：被代理拦截或站点不可达时尽快切到备用源，避免手动检查久等
+            using var primaryCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            primaryCts.CancelAfter(TimeSpan.FromSeconds(4));
+            return await FetchManifestAsync(source, primaryCts.Token).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
         {
             UpdateLogger.Warn($"主更新源不可用（{ex.Message}），改用同仓库 raw 备用清单");
             var json = await FetchManifestAsync(VersionInfo.FallbackManifestUrl, cancellationToken).ConfigureAwait(false);
