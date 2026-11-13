@@ -1,4 +1,4 @@
-<#
+﻿<#
   生成 updates/stable/latest.json（第 1 期检查更新清单）。
   版本号始终从 WpfApp1.csproj 的 <Version> 读取，避免清单与程序集版本不一致。
 

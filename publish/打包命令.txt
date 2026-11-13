@@ -1,7 +1,27 @@
-编译：
-cd "C:\Users\64860\Documents\dm\xx\WpfApp1"
+一键打包（推荐）：
+  双击  scripts\一键打包.bat
+  按提示输入版本号（例如 2.3.9），脚本会自动完成下列全部步骤。
 
-dotnet build
+  命令行等价写法：
+  powershell -ExecutionPolicy Bypass -File scripts\Build-Release.ps1 -Version 2.3.9
 
-打包命令：
-cd "C:\Users\64860\Documents\dm\xx" && dotnet publish WpfApp1/WpfApp1.csproj -c Release -p:PublishProfile=SingleFile-win-x64
+  演练（不写文件、不发布）：
+  powershell -ExecutionPolicy Bypass -File scripts\Build-Release.ps1 -Version 2.3.9 -DryRun
+
+脚本会做：
+  1. 同步 WpfApp1\WpfApp1.csproj 的四个版本号字段
+  2. dotnet publish 单文件自包含发布（单节点编译，规避 BG1002）
+  3. 校验 exe 的 FileVersion 与新版本号一致
+  4. 计算大小 / SHA256，更新 updates\stable\latest.json
+  5. 同步 index.html 下载区静态快照（版本 / 日期 / 大小）
+  6. 在 artifacts\releases\ 归档 CCToolbox-v<版本>.exe 与 .sha256
+
+脚本不会做（需人工确认或证书）：
+  git commit / tag / push、上传 GitHub Releases、代码签名。
+  打包完成后按脚本输出的「还需人工完成」步骤操作。
+
+仅发布、不换版本号的等价命令（备查）：
+  dotnet publish WpfApp1/WpfApp1.csproj -c Release -p:PublishProfile=SingleFile-win-x64 -m:1 -nr:false
+
+输出目录：
+  artifacts\publish\win-x64-single\CCToolbox.exe

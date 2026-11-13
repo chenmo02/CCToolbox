@@ -131,11 +131,19 @@ dotnet restore .\WpfApp1\WpfApp1.csproj --configfile .\NuGet.Config
 # 启动调试
 dotnet run --project .\WpfApp1\WpfApp1.csproj --launch-profile CCToolbox-DebugLocal
 
-# 发布 win-x64 自包含单文件
-dotnet publish .\WpfApp1\WpfApp1.csproj -c Release -p:PublishProfile=SingleFile-win-x64
+# 一键打包（推荐）：双击 scripts\一键打包.bat 后输入版本号
+powershell -ExecutionPolicy Bypass -File .\scripts\Build-Release.ps1 -Version 2.3.9
+
+# 演练（不写文件、不发布）
+powershell -ExecutionPolicy Bypass -File .\scripts\Build-Release.ps1 -Version 2.3.9 -DryRun
+
+# 仅发布、不换版本号
+dotnet publish .\WpfApp1\WpfApp1.csproj -c Release -p:PublishProfile=SingleFile-win-x64 -m:1 -nr:false
 ```
 
-发布输出为 `artifacts/publish/win-x64-single/CCToolbox.exe`，该目录已被 `.gitignore` 忽略。
+一键打包会同步 `WpfApp1.csproj` 四处版本号、校验产物 `FileVersion`、计算 SHA256 并更新 `updates/stable/latest.json` 与官网下载区快照，再把带版本号的 exe 归档到 `artifacts/releases/`。脚本不会自动 commit / tag / push 或上传 Releases，后续步骤见 `publish/打包命令.txt`。
+
+发布输出为 `artifacts/publish/win-x64-single/CCToolbox.exe`；`artifacts/` 已被 `.gitignore` 忽略。
 
 ### 目录结构
 
