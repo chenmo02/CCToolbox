@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CC 实施工具箱 CCToolbox · 把杂乱数据整理成能用的结果</title>
+<meta name="description" content="CCToolbox 是面向实施现场的 Windows 桌面工具：表格转 SQL、数据校验、差异对比、JSON 处理与发票打印集中在一个窗口。不连数据库、不上传文件，核心处理全部在本机完成。">
+<meta property="og:type" content="website">
+<meta property="og:title" content="CC 实施工具箱 · 把杂乱数据整理成能用的结果">
+<meta property="og:description" content="本地运行的 Windows 数据工具箱，单文件免安装，约 70 MB。">
+<meta property="og:url" content="https://chenmo02.github.io/CCToolbox/">
+<meta property="og:image" content="https://chenmo02.github.io/CCToolbox/img/app-icon.png">
+<meta name="theme-color" content="#fffef5">
+<link rel="icon" type="image/png" href="img/app-icon.png">
+<!--
+  部署说明（GitHub Pages）
+  1. 本文件放在仓库 main 分支根目录；同时保留 img/app-icon.png（由 WpfApp1/favicon.ico 转出的程序图标）。
+  2. Settings → Pages → Deploy from a branch → main / (root) → Save。
+  3. 站点地址：https://chenmo02.github.io/CCToolbox/
+  4. 链接已指向真实仓库 chenmo02/CCToolbox；若仓库再次改名，全局替换 github.com/chenmo02/CCToolbox。
+  5. 版本信息是静态快照，发新版后请同步更新「下载」区的 Release 说明。
+  风格：Hand-Drawn Doodle（stylekit.top），配色 / 虚线 / 彩影 / 胶带遵循其 design.md。
+-->
+<style>
+:root{
+  --ink:#2c2c2c; --paper:#fffef5;
+  --red:#ff6b6b; --teal:#4ecdc4; --yellow:#ffd93d; --olive:#a98d16;
+  --font-display:'Baloo 2','Comic Sans MS','Trebuchet MS','PingFang SC','Microsoft YaHei',sans-serif;
+  --font-body:'Nunito','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  --wrap:min(1080px,92vw);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:88px}
+body{
+  font-family:var(--font-body);font-size:16px;line-height:1.65;color:var(--ink);
+  background-color:var(--paper);
+  background-image:repeating-linear-gradient(transparent,transparent 31px,rgba(168,200,232,.26) 31px,rgba(168,200,232,.26) 32px);
+  overflow-x:clip;
+}
+body::before{content:"";position:fixed;left:min(7vw,120px);top:0;bottom:0;width:1px;background:rgba(255,107,107,.3);pointer-events:none;z-index:0}
+img,svg{display:block;max-width:100%}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{width:var(--wrap);margin-inline:auto;position:relative;z-index:1}
+.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--yellow);border:2px dashed var(--ink);padding:10px 16px;font-weight:600}
+.skip:focus{left:12px;top:12px}
+:focus-visible{outline:3px dashed var(--teal);outline-offset:4px}
+
+/* ---------- 共享涂鸦组件 ---------- */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;justify-content:center;
+  background:var(--paper);border:2px dashed var(--ink);border-radius:2px;
+  padding:12px 24px;font-family:var(--font-display);font-size:18px;font-weight:800;
+  letter-spacing:.02em;color:var(--ink);box-shadow:4px 4px 0 var(--red);
+  transition:150ms linear;
+}
+.btn:hover{background:var(--ink);color:var(--paper);transform:translate(-1px,-4px) rotate(1deg);box-shadow:6px 6px 0 var(--teal)}
+.btn:active{transform:translate(3px,3px) scale(.98);box-shadow:none}
+.btn.btn-teal{box-shadow:4px 4px 0 var(--teal)}
+.btn.btn-teal:hover{box-shadow:6px 6px 0 var(--yellow);color:var(--ink);background:var(--yellow)}
+.btn.btn-sm{padding:8px 16px;font-size:15px;box-shadow:3px 3px 0 var(--yellow)}
+.btn .ico{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.note{
+  position:relative;background:var(--paper);border:3px dashed var(--ink);border-radius:2px;
+  padding:32px;box-shadow:5px 5px 0 var(--yellow);transition:150ms linear;
+}
+.note:hover{transform:translateY(-4px) rotate(-1deg);box-shadow:8px 8px 0 var(--red)}
+.note h3{font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.25;transform:rotate(-3deg);transform-origin:left center;transition:150ms linear;margin-bottom:12px}
+.note:hover h3{transform:rotate(0)}
+.note p{font-size:15px;line-height:1.7}
+.note.red{box-shadow:5px 5px 0 var(--red)}
+.note.teal{box-shadow:5px 5px 0 var(--teal)}
+.tilt-l{transform:rotate(-1.5deg)}
+.tilt-r{transform:rotate(1.5deg)}
+.tilt-l:hover,.tilt-r:hover{transform:translateY(-4px) rotate(0)}
+.tape::before{
+  content:"";position:absolute;top:-11px;left:50%;width:96px;height:24px;
+  transform:translateX(-50%) rotate(-4deg);background:rgba(255,217,61,.8);
+  clip-path:polygon(0 0,100% 0,97% 50%,100% 100%,0 100%,3% 50%);
+}
+.tape-right::before{left:auto;right:28px;transform:rotate(6deg)}
+.pin{position:absolute;top:-14px;right:26px;width:22px;height:22px;border-radius:60% 40% 50% 50%;background:var(--red);border:2px dashed var(--ink);box-shadow:2px 2px 0 var(--ink)}
+.pin::after{content:"";position:absolute;top:4px;left:5px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.8)}
+.kicker{
+  display:inline-block;background:var(--yellow);border:2px dashed var(--ink);border-radius:60% 40% 50% 50% / 50% 55% 45% 50%;
+  padding:5px 16px;font-family:var(--font-display);font-size:14px;font-weight:800;letter-spacing:.12em;
+  box-shadow:3px 3px 0 var(--red);transform:rotate(-2deg);margin-bottom:22px;
+}
+.mark{text-decoration:underline wavy var(--red);text-underline-offset:7px;text-decoration-thickness:2px}
+.hl{background:linear-gradient(104deg,transparent 1%,rgba(255,217,61,.42) 3%,rgba(255,217,61,.3) 97%,transparent 99%);padding:0 5px}
+.tag{display:inline-block;background:rgba(78,205,196,.22);border:2px dashed var(--ink);border-radius:2px;padding:1px 7px;font-size:.92em;line-height:1.4}
+.tag-y{background:rgba(255,217,61,.45)}
+.section{padding:96px 0 0}
+.sec-head{max-width:760px;margin-bottom:48px}
+.sec-head h2{font-family:var(--font-display);font-size:clamp(28px,3.6vw,40px);font-weight:800;line-height:1.15;transform:rotate(-1deg);transform-origin:left center}
+.sec-head p{margin-top:18px;font-size:17px;max-width:680px}
+.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
+.reveal{opacity:0;translate:0 18px;transition:opacity .35s linear,translate .35s linear}
+.reveal.on{opacity:1;translate:0 0}
+
+/* ---------- 导航 ---------- */
+.nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:2px dashed var(--ink)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:68px}
+.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:.02em;flex:none}
+.brand-mark{width:34px;height:34px;flex:none;object-fit:contain;transform:rotate(-6deg)}
+.nav-links{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
+.nav-links a{padding:7px 12px;font-size:15px;font-weight:600;border-radius:2px;transition:150ms linear;white-space:nowrap}
+.nav-links a:hover{background:var(--yellow)}
+.nav-links a.active{background:var(--teal);box-shadow:2px 2px 0 var(--ink)}
+.nav-actions{display:flex;align-items:center;gap:10px;flex:none}
+.menu-btn{display:none;width:38px;height:38px;background:var(--paper);border:2px dashed var(--ink);border-radius:2px;box-shadow:3px 3px 0 var(--teal);font-size:18px;font-weight:800;line-height:1}
+
+/* ---------- Hero ---------- */
+.hero{padding:88px 0 24px;position:relative}
+.hero-inner{display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center}
+.badge{display:inline-flex;align-items:center;gap:8px;background:var(--teal);border:2px dashed var(--ink);padding:5px 15px;font-weight:800;font-size:14px;box-shadow:3px 3px 0 var(--ink);transform:rotate(-2deg);margin-bottom:24px}
+.badge::before{content:"";width:9px;height:9px;border-radius:60% 40% 50% 50%;background:var(--red);border:1px dashed var(--ink)}
+.hero h1{font-family:var(--font-display);font-size:clamp(34px,4.6vw,52px);font-weight:800;line-height:1.14;letter-spacing:.01em}
+.hero .lead{margin-top:22px;font-size:17px;line-height:1.75;max-width:520px}
+.cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
+.hero-meta{margin-top:20px;font-size:14px;font-weight:600;opacity:.78}
+.hero-art{position:relative;display:flex;justify-content:center;padding:18px 10px 26px}
+.polaroid{position:relative;width:min(340px,100%);background:var(--paper);border:3px dashed var(--ink);padding:16px 16px 46px;box-shadow:7px 7px 0 var(--teal);transform:rotate(2deg)}
+.polaroid img{width:100%;aspect-ratio:1/1;object-fit:contain;background:rgba(255,255,255,.55);border:2px dashed rgba(44,44,44,.35)}
+.polaroid .cap{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-family:var(--font-display);font-weight:800;font-size:17px;transform:rotate(-2deg)}
+.star{position:absolute;width:46px;height:46px;top:-8px;left:2px;transform:rotate(-12deg)}
+.star path{fill:var(--yellow);stroke:var(--ink);stroke-width:2.4;stroke-dasharray:6 3;stroke-linejoin:round}
+.scribble{position:absolute;right:-6px;bottom:0;background:var(--yellow);border:2px dashed var(--ink);padding:5px 12px;font-family:var(--font-display);font-weight:800;font-size:14px;transform:rotate(-5deg);box-shadow:3px 3px 0 var(--red)}
+.hero-arrow{position:absolute;left:-18px;bottom:34px;width:92px;height:62px;transform:rotate(-14deg)}
+.hero-arrow path{fill:none;stroke:var(--red);stroke-width:3;stroke-linecap:round;stroke-dasharray:7 5}
+.circle-mark{position:absolute;right:6px;top:4px;width:180px;height:64px;transform:rotate(-6deg);pointer-events:none}
+.circle-mark path{fill:none;stroke:var(--red);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:5 4}
+
+/* ---------- 数字便签 ---------- */
+.stats{padding-top:56px}
+.stat{background:var(--paper);border:3px dashed var(--ink);padding:22px 20px;text-align:center;box-shadow:5px 5px 0 var(--yellow)}
+.stat:nth-child(2){box-shadow:5px 5px 0 var(--red)}
+.stat:nth-child(3){box-shadow:5px 5px 0 var(--teal)}
+.stat:nth-child(4){box-shadow:5px 5px 0 var(--olive)}
+.stat b{display:block;font-family:var(--font-display);font-size:44px;font-weight:800;line-height:1.1;transform:rotate(-3deg)}
+.stat span{display:block;margin-top:8px;font-size:14px;font-weight:600}
+.stat-note{margin-top:16px;font-size:13px;line-height:1.7;opacity:.8}
+
+/* ---------- 功能卡 ---------- */
+.feature-list{list-style:none;margin-top:16px}
+.feature-list li{position:relative;padding-left:24px;font-size:15px;line-height:1.9}
+.feature-list li::before{content:"";position:absolute;left:2px;top:11px;width:10px;height:10px;background:var(--teal);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%;transform:rotate(18deg)}
+.feature-icon{width:42px;height:42px;margin-bottom:14px}
+.feature-icon path,.feature-icon rect,.feature-icon circle{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 3}
+.feature-icon .fill{fill:var(--yellow);stroke:var(--ink)}
+.matrix-wrap{margin-top:48px;overflow-x:auto;padding-bottom:12px}
+.matrix{width:100%;min-width:560px;border-collapse:collapse;font-size:15px}
+.matrix th,.matrix td{border:2px dashed var(--ink);padding:13px 14px;text-align:center}
+.matrix th{background:var(--yellow);font-family:var(--font-display);font-weight:800}
+.matrix td:first-child{text-align:left;font-weight:600;background:rgba(255,255,255,.5)}
+.matrix .yes{font-family:var(--font-display);font-size:22px;font-weight:800;color:#0f6e56}
+.matrix .no{color:#993c1d;font-weight:800}
+.matrix-note{margin-top:14px;font-size:13px;opacity:.8}
+
+/* ---------- 上手步骤 ---------- */
+.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;counter-reset:step}
+.step{position:relative;background:var(--paper);border:3px dashed var(--ink);padding:30px 22px 24px;box-shadow:5px 5px 0 var(--teal)}
+.step:nth-child(even){box-shadow:5px 5px 0 var(--yellow)}
+.step .num{position:absolute;top:-20px;left:18px;width:42px;height:42px;display:grid;place-items:center;background:var(--red);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%;font-family:var(--font-display);font-size:22px;font-weight:800;box-shadow:3px 3px 0 var(--ink);transform:rotate(-8deg)}
+.step h3{font-family:var(--font-display);font-size:20px;font-weight:800;margin:12px 0 10px}
+.step p{font-size:14px;line-height:1.7}
+.step-arrow{position:absolute;right:-24px;top:44%;width:28px;height:20px;z-index:2}
+.step-arrow path{fill:none;stroke:var(--red);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:5 3}
+
+/* ---------- 边界便签 ---------- */
+.limit{background:var(--paper);border:2px dashed var(--ink);padding:20px 22px;box-shadow:4px 4px 0 var(--yellow);font-size:14px;line-height:1.7}
+.limit b{display:block;font-family:var(--font-display);font-size:17px;font-weight:800;margin-bottom:6px}
+.limit:nth-child(3n+2){box-shadow:4px 4px 0 var(--red)}
+.limit:nth-child(3n+3){box-shadow:4px 4px 0 var(--teal)}
+.limits-foot{margin-top:22px;font-size:14px}
+
+/* ---------- FAQ ---------- */
+.faq{display:grid;gap:16px}
+.faq details{background:var(--paper);border:2px dashed var(--ink);padding:18px 22px;box-shadow:4px 4px 0 var(--yellow);transition:150ms linear}
+.faq details[open]{box-shadow:6px 6px 0 var(--teal)}
+.faq summary{font-family:var(--font-display);font-size:18px;font-weight:800;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{content:"+";font-size:22px;line-height:1;color:var(--red)}
+.faq details[open] summary::after{content:"−"}
+.faq p{margin-top:14px;font-size:15px;line-height:1.75}
+
+/* ---------- 下载 ---------- */
+.dl-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:28px}
+.dl-card{padding:36px 32px}
+.dl-card h3{font-size:28px}
+.dl-card .dl-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
+.dl-meta{margin-top:22px;font-size:13px;line-height:1.8;opacity:.85}
+.dl-meta strong{color:var(--olive)}
+.dl-alt{list-style:none;margin-top:14px}
+.dl-alt li{padding:8px 0 8px 22px;position:relative;font-size:14px;line-height:1.6}
+.dl-alt li::before{content:"";position:absolute;left:0;top:15px;width:10px;height:10px;background:var(--red);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%}
+
+/* ---------- 页脚 ---------- */
+.footer{margin-top:96px;border-top:3px dashed var(--ink);padding:36px 0 48px;position:relative;z-index:1}
+.footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
+.footer-links{display:flex;flex-wrap:wrap;gap:18px;font-weight:600;font-size:15px}
+.footer-links a{border-bottom:2px wavy var(--red);padding-bottom:2px}
+.footer-links a:hover{background:var(--yellow)}
+.footer .sign{font-family:var(--font-display);font-weight:800;font-size:16px;transform:rotate(-2deg)}
+
+/* ---------- 响应式 ---------- */
+@media(max-width:980px){
+  .hero-inner{grid-template-columns:1fr;gap:40px}
+  .hero-art{order:-1;max-width:420px;margin-inline:auto;width:100%}
+  .grid-3,.grid-4,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .step-arrow{display:none}
+  .dl-grid{grid-template-columns:1fr}
+  .section{padding-top:72px}
+}
+@media(max-width:760px){
+  body::before{display:none}
+  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;background:var(--paper);border-bottom:3px dashed var(--ink);padding:12px 4vw 18px;flex-direction:column;align-items:stretch;gap:4px;box-shadow:0 6px 0 rgba(255,217,61,.6)}
+  .nav-links.open{display:flex}
+  .menu-btn{display:block}
+  .nav-actions .btn{display:none}
+  .grid-2,.grid-3,.grid-4,.steps{grid-template-columns:1fr}
+  .note{padding:24px}
+  .note h3{font-size:21px}
+  .tilt-l,.tilt-r{transform:none}
+  .polaroid{transform:rotate(0)}
+  .star{width:36px;height:36px}
+  .circle-mark{display:none}
+  .section{padding-top:64px}
+  .sec-head h2{transform:none}
+  .footer-inner{flex-direction:column;align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *{transition:none!important;animation:none!important}
+  .reveal{opacity:1;translate:0 0}
+  .btn:hover,.note:hover,.tilt-l:hover,.tilt-r:hover{transform:none}
+}
+</style>
+<noscript><style>
+  .reveal{opacity:1;translate:0 0}
+  @media(max-width:760px){.nav-links{display:flex;position:static;flex-direction:row;flex-wrap:wrap;border:0;padding:0;box-shadow:none}.menu-btn{display:none}}
+</style></noscript>
+</head>
+<body>
+<a class="skip" href="#main">跳到主要内容</a>
+
+<header class="nav">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#top" aria-label="CCToolbox 首页">
+      <img class="brand-mark" src="img/app-icon.png" alt="" aria-hidden="true">
+      <span>CCToolbox</span>
+    </a>
+    <nav class="nav-links" id="navLinks" aria-label="主导航">
+      <a href="#why">为什么</a>
+      <a href="#features">功能</a>
+      <a href="#guide">上手</a>
+      <a href="#limits">边界</a>
+      <a href="#faq">问答</a>
+      <a href="#download">下载</a>
+    </nav>
+    <div class="nav-actions">
+      <a class="btn btn-sm" href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub 源码</a>
+      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="展开导航">☰</button>
+    </div>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero" id="top">
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <span class="badge">Windows 桌面工具 · 本地运行</span>
+        <h1>实施现场的<span class="mark">数据活儿</span>，<br>一个窗口搞定</h1>
+        <p class="lead">CC 实施工具箱（CCToolbox）把表格转 SQL、数据校验、差异对比、JSON 处理和发票打印放进同一个窗口。<span class="hl">不连数据库，不上传文件</span>，核心处理全部在本机完成。</p>
+        <div class="cta">
+          <a class="btn" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">下载最新版</a>
+          <a class="btn btn-teal" href="#guide">三分钟上手</a>
+        </div>
+        <p class="hero-meta">Windows 10 19041+ · x64 · 免安装 · 约 70 MB 单文件 · by 悲伤番茄</p>
+      </div>
+      <div class="hero-art">
+        <svg class="circle-mark" viewBox="0 0 180 64" aria-hidden="true"><path d="M12 34 C10 12 168 6 174 30 C180 54 60 62 16 48"/></svg>
+        <div class="polaroid tape">
+          <img src="img/app-icon.png" alt="CCToolbox 程序图标：一个流泪的番茄">
+          <div class="cap">CCToolbox · by 悲伤番茄</div>
+        </div>
+        <svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C22 14 26 18 38 20 C26 22 22 26 20 38 C18 26 14 22 2 20 C14 18 18 14 20 2 Z"/></svg>
+        <svg class="hero-arrow" viewBox="0 0 92 62" aria-hidden="true"><path d="M4 52 C24 56 48 40 68 18 M68 18 L54 20 M68 18 L66 32"/></svg>
+        <span class="scribble">核心功能离线可用</span>
+      </div>
+    </div>
+  </section>
+
+  <section class="stats wrap" aria-label="产品速览">
+    <div class="grid-4">
+      <div class="stat reveal"><b>11</b><span>个功能页面</span></div>
+      <div class="stat reveal"><b>4</b><span>种数据库可生成 SQL</span></div>
+      <div class="stat reveal"><b>0</b><span>次业务数据上传</span></div>
+      <div class="stat reveal"><b>1</b><span>个 exe，免安装</span></div>
+    </div>
+    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」指核心文件处理，在线画板需联网加载 Excalidraw；发布产物为单个自包含 exe（约 70 MB）。</p>
+  </section>
+
+  <section class="section wrap" id="why">
+    <div class="sec-head reveal">
+      <span class="kicker">01 / 为什么</span>
+      <h2>少一些重复操作，<span class="hl">多一些清晰结果</span></h2>
+      <p>实施现场的麻烦通常不是「不会做」，而是同一件事要反复手工确认。这个工具把几个高频环节收在一起，并且让每一步的结果都能拿出来复核。</p>
+    </div>
+    <div class="grid-3">
+      <article class="note tilt-l reveal">
+        <h3>表格转 SQL 不再手工拼</h3>
+        <p>导入 Excel / CSV / DBF，预览并修正内容后生成建表与批量 INSERT 脚本；四类数据库的标识符、临时表与批量语法自动适配。</p>
+      </article>
+      <article class="note reveal">
+        <h3>导入报错能定位到行</h3>
+        <p>按目标表结构建立字段映射，逐行检查类型与格式约束，把问题落到行号、字段和实际值，并导出带主键定位信息的 Excel 报告。</p>
+      </article>
+      <article class="note tilt-r reveal">
+        <h3>前后差异一眼看全</h3>
+        <p>CSV 按行号或复合主键对比，JSON 按结构对比；新增、删除、修改与类型变化分类呈现，支持筛选与导出。</p>
+      </article>
+      <article class="note teal reveal">
+        <h3>深层 JSON 不靠肉眼</h3>
+        <p>格式化、压缩、语法校验，配上可折叠的嵌套表格浏览与编辑回写，让多层对象与数组在保留上下文的前提下查看和修改。</p>
+      </article>
+      <article class="note red reveal">
+        <h3>零散小事一个入口</h3>
+        <p>发票排版打印、在线画板、随手记与系统参数配置都在同一套导航里，减少来回找工具和重复设置。</p>
+      </article>
+      <article class="note reveal">
+        <h3>结果能带走</h3>
+        <p>SQL 可以复制或保存为 <span class="tag">.sql</span>，数据与报告可导出 CSV / JSON / Excel；导出统一使用带 BOM 的 UTF-8，Excel 打开中文不乱码。</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap" id="features">
+    <div class="sec-head reveal">
+      <span class="kicker">02 / 功能</span>
+      <h2>四组工具，<span class="mark">都在这一个窗口</span></h2>
+      <p>左侧导航按「数据工具 / 开发工具 / 办公工具 / 系统」分组；CSV 对比藏在系统参数配置的实用小工具里。</p>
+    </div>
+    <div class="grid-2">
+      <article class="note reveal">
+        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><rect class="fill" x="4" y="6" width="26" height="30"/><path d="M4 16h26M4 26h26M15 6v30M33 22h7M37 18l4 4-4 4"/></svg>
+        <h3>数据工具</h3>
+        <ul class="feature-list">
+          <li>首页数据概览：快捷入口与构建信息</li>
+          <li>临时数据建表：表格 → 建表与 INSERT 脚本</li>
+          <li>CSV 文件预览：编码识别、全表搜索定位</li>
+          <li>快速建数据表：粘贴 INSERT 反推 CREATE TABLE</li>
+          <li>数据验证排查：四步向导 + 三 Sheet 报告</li>
+          <li>CSV 对比：行号 / 复合主键两种匹配方式</li>
+        </ul>
+      </article>
+      <article class="note reveal">
+        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M16 6c-6 0-6 7-6 10s0 6-4 6c6 0 6 6 6 10s0 6 6 6M28 6c6 0 6 7 6 10s0 6 4 6c-6 0-6 6-6 10s0 6-6 6"/></svg>
+        <h3>开发工具</h3>
+        <ul class="feature-list">
+          <li>JSON 数据解析：双栏编辑、嵌套 GRID、双搜索</li>
+          <li>JSON 内容比对：差异列表与双侧行号定位</li>
+          <li>在线绘图工具：内嵌 Excalidraw，导出 PNG / SVG</li>
+        </ul>
+        <p style="margin-top:16px;font-size:14px">画板是唯一需要联网的页面，依赖 WebView2 Runtime。</p>
+      </article>
+      <article class="note teal reveal">
+        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M9 5h21l6 6v28H9zM30 5v7h6M14 20h17M14 27h17M14 34h10"/></svg>
+        <h3>办公工具</h3>
+        <ul class="feature-list">
+          <li>发票打印操作：PDF 与图片预览、排版、模板与打印</li>
+          <li>支持每页 1 / 2 / 4 张、纸张方向、边距与裁剪线</li>
+          <li>OFD 目前只能选择登记，尚未实现渲染</li>
+        </ul>
+      </article>
+      <article class="note red reveal">
+        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="15"/><path d="M22 7v6M22 31v6M7 22h6M31 22h6M22 17v10M17 22h10"/></svg>
+        <h3>系统与顺手的小东西</h3>
+        <ul class="feature-list">
+          <li>系统参数配置：默认数据库、表名、批量行数、导出路径</li>
+          <li>随手记：右下角悬浮球，关闭即自动保存</li>
+          <li>浅色 / 深色主题字典（当前无设置页切换入口）</li>
+        </ul>
+      </article>
+    </div>
+
+    <div class="matrix-wrap reveal">
+      <table class="matrix">
+        <thead><tr><th>能力</th><th>PostgreSQL</th><th>SQL Server</th><th>MySQL</th><th>Oracle</th></tr></thead>
+        <tbody>
+          <tr><td>建表 / INSERT 脚本生成</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>快速建数据表（CREATE TABLE）</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+          <tr><td>数据验证排查</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
+        </tbody>
+      </table>
+      <p class="matrix-note">「—」表示当前版本不支持。校验只覆盖已建立有效映射的字段，规则细节见仓库内 <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/data-validation-rules.md" target="_blank" rel="noopener" style="border-bottom:2px wavy var(--red)">data-validation-rules.md</a>。</p>
+    </div>
+  </section>
+
+  <section class="section wrap" id="guide">
+    <div class="sec-head reveal">
+      <span class="kicker">03 / 上手</span>
+      <h2>放进数据，<span class="hl">带走结果</span></h2>
+      <p>不需要连接串、不需要账号、不需要先建工程。打开 exe，选一个页面，把文件或文本放进去就行。</p>
+    </div>
+    <div class="steps">
+      <div class="step reveal"><span class="num">1</span><h3>放进数据</h3><p>拖入 Excel / CSV / DBF，或粘贴一段 INSERT、JSON、DDL。文件解析与编码识别在本地完成。</p></div>
+      <div class="step reveal"><span class="num">2</span><h3>看一眼结果</h3><p>在可编辑表格里预览并修正，选好数据库和表名，生成建表与插入脚本；SQL 可以直接复制或保存。</p></div>
+      <div class="step reveal"><span class="num">3</span><h3>核一遍问题</h3><p>确认字段映射后逐行校验，或拿两份 CSV / JSON 做差异对比。问题定位到行号、字段与实际值。</p></div>
+      <div class="step reveal"><span class="num">4</span><h3>带走成果</h3><p>导出 SQL、CSV、JSON 或 Excel 问题报告，拿到数据库客户端里执行，或直接交给同事复核。</p></div>
+    </div>
+  </section>
+
+  <section class="section wrap" id="limits">
+    <div class="sec-head reveal">
+      <span class="kicker">04 / 边界</span>
+      <h2>能做什么，<span class="mark">不能做什么</span>，都写清楚</h2>
+      <p>下面是当前版本真实的限制。把它放在官网，比放在用户踩坑之后更好。</p>
+    </div>
+    <div class="grid-3">
+      <div class="limit reveal"><b>不直连数据库</b>SQL 只生成、不执行；字段校验也基于文本与文件，脚本由你在数据库客户端运行。</div>
+      <div class="limit reveal"><b>校验范围有限</b>目前仅支持 SQL Server / PostgreSQL，覆盖类型与格式约束，不校验业务语义、跨字段关系、外键存在性与 JSON Schema。</div>
+      <div class="limit reveal"><b>建表列全是字符串</b>「临时数据建表」把所有列按字符串输出，依赖目标库隐式转换；需要精确类型请用「快速建数据表」。</div>
+      <div class="limit reveal"><b>OFD 尚未渲染</b>可以选择登记，但预览与打印为空，请使用 PDF 或图片。</div>
+      <div class="limit reveal"><b>画板依赖外网</b>在线绘图通过 WebView2 加载 Excalidraw，需要 WebView2 Runtime 与网络连接。</div>
+      <div class="limit reveal"><b>配置写在程序目录</b><span class="tag">settings.json</span> 等文件在 exe 同目录，放到只读安装位置会保存失败。</div>
+      <div class="limit reveal"><b>部分状态不持久</b>CSV 对比的页面状态只在进程内存，退出程序即丢失。</div>
+      <div class="limit reveal"><b>大文件有阈值</b>超过 10 万行生成前会确认；SQL 超过 5000 行时只预览前 1000 行（复制与保存仍完整）；校验明细上限 1 万条。</div>
+      <div class="limit reveal"><b>exe 未签名</b>可能被 SmartScreen 或杀软启发式误报，可核对 Releases 校验信息或从源码自行构建。</div>
+    </div>
+    <p class="limits-foot">完整技术说明见仓库内「程序说明」；校验规则、在线更新方案均以 Markdown 形式随源码提供。</p>
+  </section>
+
+  <section class="section wrap" id="faq">
+    <div class="sec-head reveal">
+      <span class="kicker">05 / 问答</span>
+      <h2>你可能想问的</h2>
+    </div>
+    <div class="faq reveal">
+      <details><summary>需要安装 .NET 或 VC++ 运行库吗？</summary><p>不需要。发布包是自包含单文件 exe，依赖已打进程序；只有从源码调试运行才需要 .NET 10 SDK。在线画板另需系统已安装 WebView2 Runtime。</p></details>
+      <details><summary>会上传或收集我的数据吗？</summary><p>核心功能（表格转换、CSV 预览与对比、JSON 处理、数据校验、发票打印）全部在本机内存完成，不连数据库、不上传文件。唯一的联网点是「在线绘图工具」通过 WebView2 加载 excalidraw.com。</p></details>
+      <details><summary>支持哪些数据库？</summary><p>建表与 INSERT 脚本生成支持 PostgreSQL、SQL Server、MySQL、Oracle 四种；「数据验证排查」目前只支持 SQL Server 与 PostgreSQL。</p></details>
+      <details><summary>支持哪些文件格式？</summary><p>表格导入支持 <span class="tag">.xlsx</span> <span class="tag">.xls</span> <span class="tag">.csv</span> <span class="tag">.dbf</span>；分隔文本预览与对比支持 <span class="tag">.csv</span> <span class="tag">.tsv</span> <span class="tag">.txt</span> <span class="tag">.dbf</span> <span class="tag">.bdf</span>；发票支持 PDF 与 JPG / PNG / BMP / TIF，OFD 除外。</p></details>
+      <details><summary>配置文件在哪里？换电脑怎么办？</summary><p><span class="tag">settings.json</span>、<span class="tag">invoice_templates.json</span>、<span class="tag">invoice_print_history.json</span> 写在 exe 同目录；随手记在 <span class="tag-y tag">%LOCALAPPDATA%\CCToolbox\quick-notes.txt</span>。换机时连同这几个文件一起拷贝即可。</p></details>
+      <details><summary>杀毒软件或 SmartScreen 报毒怎么办？</summary><p>当前 exe 未做数字签名，加上需要读写文件与操作剪贴板，容易被启发式规则误判。可以核对 Releases 页面的校验信息、把文件加入信任，或直接按仓库 README 的命令从源码构建。</p></details>
+      <details><summary>画板打不开？</summary><p>请确认系统已安装 WebView2 Runtime 且能访问 excalidraw.com。画板是唯一依赖网络的页面，其余功能离线可用。</p></details>
+    </div>
+  </section>
+
+  <section class="section wrap" id="download">
+    <div class="sec-head reveal">
+      <span class="kicker">06 / 下载</span>
+      <h2>拿走这一个 <span class="hl">exe</span> 就行</h2>
+      <p>没有安装向导、没有账号、没有试用版。下载后放到当前用户可写的目录，双击运行。</p>
+    </div>
+    <div class="dl-grid">
+      <article class="note dl-card tape tape-right reveal">
+        <span class="pin"></span>
+        <h3>GitHub Releases</h3>
+        <p>官方最新版始终在这里，同时保留历史版本与源码。下载 <span class="tag">CCToolbox.exe</span> 后即可运行。</p>
+        <div class="dl-buttons"><a class="btn" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">前往下载</a></div>
+        <p class="dl-meta">页面为静态快照：<strong>v2.3.8</strong>（2026-11-03）· CCToolbox.exe · 69.8 MB · Windows 10 / 11 x64。最新版本以 Releases 页面为准。</p>
+      </article>
+      <article class="note teal dl-card reveal">
+        <h3>源码与反馈</h3>
+        <p>项目基于 .NET 10 + WPF，源码、技术说明与校验规则文档都在仓库里；遇到问题可以直接提 Issue。</p>
+        <ul class="dl-alt">
+          <li>自己构建需要 .NET 10 SDK</li>
+          <li>发布命令见 README 与「打包命令」备忘</li>
+          <li>核心处理本地完成，无需服务端</li>
+        </ul>
+        <div class="dl-buttons">
+          <a class="btn btn-sm" href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">查看源码</a>
+          <a class="btn btn-sm btn-teal" href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">提交问题</a>
+        </div>
+      </article>
+    </div>
+  </section>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="sign">by 悲伤番茄 · 持续迭代中</p>
+      <p style="font-size:13px;margin-top:6px">© 2026 CCToolbox · 一个本地运行的实施工具箱</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">Releases</a>
+      <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/程序说明.md" target="_blank" rel="noopener">程序说明</a>
+      <a href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">反馈</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reveals = document.querySelectorAll('.reveal');
+  if (reduce || !('IntersectionObserver' in window)) {
+    Array.prototype.forEach.call(reveals, function(el){ el.classList.add('on'); });
+  } else {
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.08 });
+    Array.prototype.forEach.call(reveals, function(el){ io.observe(el); });
+
+    var links = Array.prototype.slice.call(document.querySelectorAll('#navLinks a'));
+    var map = {};
+    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+    var spy = new IntersectionObserver(function(entries){
+      entries.forEach(function(e){
+        if (!e.isIntersecting) return;
+        links.forEach(function(a){ a.classList.remove('active'); });
+        var a = map[e.target.id];
+        if (a) a.classList.add('active');
+      });
+    }, { rootMargin: '-45% 0px -50% 0px' });
+    Object.keys(map).forEach(function(id){
+      var s = document.getElementById(id);
+      if (s) spy.observe(s);
+    });
+  }
+
+  var menuBtn = document.getElementById('menuBtn');
+  var navLinks = document.getElementById('navLinks');
+  menuBtn.addEventListener('click', function(){
+    var open = navLinks.classList.toggle('open');
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn.setAttribute('aria-label', open ? '收起导航' : '展开导航');
+  });
+  Array.prototype.forEach.call(navLinks.querySelectorAll('a'), function(a){
+    a.addEventListener('click', function(){
+      navLinks.classList.remove('open');
+      menuBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
+})();
+</script>
+</body>
+</html>
