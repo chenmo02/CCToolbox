@@ -565,6 +565,45 @@ button{font:inherit;color:inherit;cursor:pointer}
       menuBtn.setAttribute('aria-expanded', 'false');
     });
   });
+
+  var copyBtn = document.getElementById('copyPwd');
+  var pwdEl = document.getElementById('dlPwd');
+  if (copyBtn && pwdEl) {
+    copyBtn.addEventListener('click', function(){
+      var text = pwdEl.textContent.trim();
+      var done = function(){
+        copyBtn.textContent = '已复制';
+        copyBtn.classList.add('done');
+        window.setTimeout(function(){
+          copyBtn.textContent = '复制';
+          copyBtn.classList.remove('done');
+        }, 1800);
+      };
+      var legacy = function(){
+        var ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+        document.body.removeChild(ta);
+        if (ok) {
+          done();
+        } else {
+          copyBtn.textContent = '请手动复制';
+          window.setTimeout(function(){ copyBtn.textContent = '复制'; }, 1800);
+        }
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, legacy);
+      } else {
+        legacy();
+      }
+    });
+  }
 })();
 </script>
 </body>
