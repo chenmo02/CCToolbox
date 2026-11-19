@@ -782,6 +782,7 @@ namespace WpfApp1.Views
             int start = _searchMatches[_currentMatchIndex];
             int length = Math.Max(_currentSearchKeywordLength, 0);
             SelectEditorRange(start, length, focusEditor, scrollToMatch);
+            JsonSyntax.SetSearchHighlight(start, length);
             _lastHighlightedMatchIndex = _currentMatchIndex;
         }
 
@@ -797,6 +798,7 @@ namespace WpfApp1.Views
 
         private void ClearSearchHighlights()
         {
+            JsonSyntax?.SetSearchHighlight(-1, 0);
             ClearSelectionForMatches(_searchMatches, _currentMatchIndex, _currentSearchKeywordLength);
 
             if (_searchMatches.Count == 0)

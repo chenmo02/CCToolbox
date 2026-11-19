@@ -89,6 +89,15 @@ namespace WpfApp1.Views
             CbIssueTypeFilter.SelectedIndex = 0;
         }
 
+        private void DgIssues_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            e.Handled = true;
+            Panel4.RaiseEvent(new MouseWheelEventArgs(e.MouseDevice, e.Timestamp, e.Delta)
+            {
+                RoutedEvent = Mouse.MouseWheelEvent
+            });
+        }
+
         private void DataGrid_PreviewKeyDown(object sender, KeyEventArgs e)
         {
             if (sender is not DataGrid grid) return;

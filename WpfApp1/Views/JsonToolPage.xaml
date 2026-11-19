@@ -183,7 +183,7 @@
                                  Background="#1E293B" Foreground="Transparent" CaretBrush="#F59E0B"
                                  Padding="12,8" BorderThickness="0"
                                  TextChanged="TxtJsonEditor_TextChanged"/>
-                        <controls:JsonSyntaxLayer Editor="{Binding ElementName=TxtJsonEditor}"/>
+                        <controls:JsonSyntaxLayer x:Name="JsonSyntax" Editor="{Binding ElementName=TxtJsonEditor}"/>
                     </Grid>
                 </DockPanel>
             </Border>

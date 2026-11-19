@@ -1712,7 +1712,6 @@
                             </Grid>
                             <Border BorderBrush="#E5EDF8" BorderThickness="1" CornerRadius="0">
                             <DataGrid x:Name="DgIssues"
-                                      MinHeight="180" MaxHeight="360"
                                       AutoGenerateColumns="False"
                                       CanUserAddRows="False"
                                       CanUserDeleteRows="False"
@@ -1733,8 +1732,9 @@
                                       RowStyle="{StaticResource DataGridRowStyle}"
                                       SelectionMode="Single"
                                       SelectionUnit="FullRow"
-                                      VerticalScrollBarVisibility="Auto"
+                                      VerticalScrollBarVisibility="Disabled"
                                       FontSize="12"
+                                      PreviewMouseWheel="DgIssues_PreviewMouseWheel"
                                       PreviewKeyDown="DataGrid_PreviewKeyDown"
                                       PreviewMouseRightButtonDown="DataGrid_PreviewMouseRightButtonDown">
                                 <DataGrid.ContextMenu>

@@ -32,6 +32,8 @@ public sealed class JsonSyntaxLayer : FrameworkElement
     private static readonly Brush Null = ColorBrush("#94A3B8");
     private static readonly Brush Punctuation = ColorBrush("#64748B");
     private static readonly Brush ComposingForeground = ColorBrush("#CBD5E1");
+    private static readonly Brush SearchLineBackground = ColorBrush("#FFEDD5");
+    private static readonly Brush SearchLineForeground = ColorBrush("#1E293B");
 
     private readonly List<Token> _tokens = [];
     private readonly Dictionary<int, (int Start, DrawingGroup Drawing)> _lines = [];
@@ -42,6 +44,8 @@ public sealed class JsonSyntaxLayer : FrameworkElement
     private bool _isComposing;
     private bool _compositionSession;
     private bool _plainFallback;
+    private int _searchLineStart = -1;
+    private int _searchLineEnd = -1;
 
     private readonly record struct Token(int Start, int Length, Brush Brush, bool Italic)
     {
@@ -53,6 +57,25 @@ public sealed class JsonSyntaxLayer : FrameworkElement
         IsHitTestVisible = false;
         SizeChanged += (_, _) => InvalidateVisual();
     }
+
+    public void SetSearchHighlight(int start, int length)
+    {
+        _searchLineStart = -1;
+        _searchLineEnd = -1;
+        if (start >= 0 && start < _source.Length && length > 0)
+        {
+            _searchLineStart = _source.AsSpan(0, start).LastIndexOfAny('\r', '\n') + 1;
+            int last = start + Math.Min(length, _source.Length - start) - 1;
+            int nextBreak = _source.AsSpan(last).IndexOfAny('\r', '\n');
+            _searchLineEnd = nextBreak < 0 ? _source.Length : last + nextBreak;
+        }
+
+        ClearLines();
+        InvalidateVisual();
+    }
+
+    private bool IsSearchLine(int start)
+        => _searchLineStart >= 0 && start >= _searchLineStart && start <= _searchLineEnd;
 
     private static void EditorChanged(DependencyObject source, DependencyPropertyChangedEventArgs args)
     {
@@ -154,6 +177,8 @@ public sealed class JsonSyntaxLayer : FrameworkElement
     {
         _tokens.Clear();
         ClearLines();
+        _searchLineStart = -1;
+        _searchLineEnd = -1;
 
         _source = Editor?.Text ?? "";
         _plainFallback = _source.Length > MaxHighlightLength;
@@ -291,7 +316,8 @@ public sealed class JsonSyntaxLayer : FrameworkElement
             ApplyForeground();
         }
 
-        if (_isComposing || _plainFallback)
+        bool nativeText = _isComposing || _plainFallback;
+        if (nativeText && _searchLineStart < 0)
             return;
 
         int first = box.GetFirstVisibleLineIndex();
@@ -334,7 +360,15 @@ public sealed class JsonSyntaxLayer : FrameworkElement
         for (int line = first; line <= last; line++)
         {
             var cached = GetLine(line, box, typeface, dpi);
-            dc.PushTransform(new TranslateTransform(origin.X + rect.X, origin.Y + rect.Y + (line - first) * lineHeight));
+            bool highlighted = IsSearchLine(cached.Start);
+            if (nativeText && !highlighted)
+                continue;
+
+            double top = origin.Y + rect.Y + (line - first) * lineHeight;
+            if (highlighted)
+                dc.DrawRectangle(SearchLineBackground, null, new Rect(0, top, Math.Max(0, right), lineHeight));
+
+            dc.PushTransform(new TranslateTransform(origin.X + rect.X, top));
             dc.DrawDrawing(cached.Drawing);
             dc.Pop();
         }
@@ -367,7 +401,7 @@ public sealed class JsonSyntaxLayer : FrameworkElement
                     FlowDirection.LeftToRight,
                     typeface,
                     box.FontSize,
-                    Plain,
+                    IsSearchLine(start) ? SearchLineForeground : Plain,
                     dpi);
 
                 int low = 0;
@@ -381,7 +415,7 @@ public sealed class JsonSyntaxLayer : FrameworkElement
                         high = middle;
                 }
 
-                for (int i = low; i < _tokens.Count && _tokens[i].Start < start + source.Length; i++)
+                for (int i = low; !IsSearchLine(start) && i < _tokens.Count && _tokens[i].Start < start + source.Length; i++)
                 {
                     var token = _tokens[i];
                     int from = Math.Max(0, token.Start - start);
