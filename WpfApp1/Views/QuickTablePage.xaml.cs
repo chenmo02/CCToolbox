@@ -71,8 +71,10 @@ public partial class QuickTablePage : Page
             return;
         }
 
+        if (!CommitColumnEdits()) return;
         foreach (var column in _columns) column.Length = length;
         GridColumns.Items.Refresh();
+        TxtOutput.Clear();
         TxtStatus.Text = $"已将 {_columns.Count} 个字段长度设置为 {length}";
         ToastService.Show(this, TxtStatus.Text);
     }
@@ -90,11 +92,13 @@ public partial class QuickTablePage : Page
             return;
         }
 
+        if (!CommitColumnEdits()) return;
         string? type = (CmbAllType.SelectedItem as ComboBoxItem)?.Content?.ToString()
                        ?? CmbAllType.SelectedItem?.ToString();
         type = QuickTableService.NormalizeType(type);
         foreach (var column in _columns) column.Type = type;
         GridColumns.Items.Refresh();
+        TxtOutput.Clear();
         TxtStatus.Text = $"已将 {_columns.Count} 个字段设置为 {type}";
         if (showEmptyMessage) ToastService.Show(this, TxtStatus.Text);
     }
@@ -104,15 +108,12 @@ public partial class QuickTablePage : Page
         try
         {
             if (_columns.Count == 0) throw new InvalidOperationException("请先解析 INSERT SQL。");
-            ApplyCaseToColumns();
-            foreach (var column in _columns)
-            {
-                string normalizedType = QuickTableService.NormalizeType(column.Type);
-                if (!string.Equals(column.Type, normalizedType, StringComparison.Ordinal))
-                    column.Type = normalizedType;
-            }
-            TxtOutput.Text = QuickTableService.GenerateSql(GetDbType(), TxtTableName.Text,
-                _columns, ChkDrop.IsChecked == true, ChkQuote.IsChecked == true);
+            if (!CommitColumnEdits()) return;
+            string tableName = TxtTableName.Text.Trim();
+            int nameStart = tableName.LastIndexOf('.') + 1;
+            tableName = tableName[..nameStart] + QuickTableService.ApplyCase(tableName[nameStart..], GetCaseMode(CmbTableCase));
+            TxtOutput.Text = QuickTableService.GenerateSql(GetDbType(), tableName,
+                _columns, ChkDrop.IsChecked == true, ChkQuote.IsChecked == true, TxtTableComment.Text);
             TxtStatus.Text = "CREATE TABLE SQL 已生成";
             ToastService.Show(this, "建表 SQL 已生成");
         }
@@ -151,11 +152,40 @@ public partial class QuickTablePage : Page
         }
     }
 
+    private bool CommitColumnEdits()
+    {
+        if (GridColumns.CommitEdit(DataGridEditingUnit.Cell, true) &&
+            GridColumns.CommitEdit(DataGridEditingUnit.Row, true))
+            return true;
+
+        TxtOutput.Clear();
+        TxtStatus.Text = "请检查正在编辑的字段值。";
+        ToastService.Show(this, TxtStatus.Text);
+        return false;
+    }
+
+    private void CmbCase_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (_columns.Count == 0 || !CommitColumnEdits()) return;
+        ApplyCaseToColumns();
+        GridColumns.Items.Refresh();
+        TxtOutput.Clear();
+    }
+
     private void ApplyCaseToColumns()
     {
-        string mode = CmbCase.SelectedIndex switch { 1 => "大写", 2 => "小写", _ => "保持原样" };
+        string mode = GetCaseMode(CmbCase);
         foreach (var column in _columns) column.Name = QuickTableService.ApplyCase(column.OriginalName, mode);
     }
+
+    private static string GetCaseMode(ComboBox comboBox) => comboBox.SelectedIndex switch
+    {
+        1 => "大写",
+        2 => "小写",
+        _ => "保持原样"
+    };
+
+    private void ClearSqlOutput(object sender, RoutedEventArgs e) => TxtOutput?.Clear();
 
     private SqlGeneratorService.DbType GetDbType() => CmbDbType.SelectedIndex switch
     {

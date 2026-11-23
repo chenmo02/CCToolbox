@@ -71,7 +71,7 @@ public static class QuickTableService
     }
 
     public static string GenerateSql(SqlGeneratorService.DbType dbType, string tableName,
-        IReadOnlyList<QuickTableColumn> columns, bool dropIfExists, bool quoteIdentifiers)
+        IReadOnlyList<QuickTableColumn> columns, bool dropIfExists, bool quoteIdentifiers, string? tableComment = null)
     {
         if (string.IsNullOrWhiteSpace(tableName)) throw new InvalidOperationException("表名不能为空。");
         if (columns.Count == 0) throw new InvalidOperationException("至少需要一个字段。");
@@ -82,18 +82,19 @@ public static class QuickTableService
             if (!names.Add(column.Name.Trim())) throw new InvalidOperationException($"字段名大小写转换后发生重名：{column.Name}");
         }
 
-        string wrappedTable = quoteIdentifiers ? QuoteCompositeName(dbType, tableName.Trim()) : tableName.Trim();
+        tableName = tableName.Trim();
+        string wrappedTable = quoteIdentifiers ? QuoteCompositeName(dbType, tableName) : tableName;
         var sb = new StringBuilder();
         if (dropIfExists)
         {
             if (dbType is SqlGeneratorService.DbType.PostgreSQL or SqlGeneratorService.DbType.MySQL)
                 sb.AppendLine($"DROP TABLE IF EXISTS {wrappedTable};");
             else if (dbType == SqlGeneratorService.DbType.SqlServer)
-                sb.AppendLine($"IF OBJECT_ID(N'{tableName.Replace("'", "''")}', 'U') IS NOT NULL DROP TABLE {wrappedTable};");
+                sb.AppendLine($"IF OBJECT_ID(N'{EscapeLiteral(wrappedTable)}', 'U') IS NOT NULL DROP TABLE {wrappedTable};");
             else
             {
                 sb.AppendLine("BEGIN");
-                sb.AppendLine($"    EXECUTE IMMEDIATE 'DROP TABLE {tableName.Replace("'", "''")}';");
+                sb.AppendLine($"    EXECUTE IMMEDIATE 'DROP TABLE {EscapeLiteral(wrappedTable)}';");
                 sb.AppendLine("EXCEPTION WHEN OTHERS THEN IF SQLCODE != -942 THEN RAISE; END IF;");
                 sb.AppendLine("END;");
                 sb.AppendLine("/");
@@ -109,7 +110,29 @@ public static class QuickTableService
             sb.Append($"    {name} {MapType(dbType, column)} {(column.Nullable ? "NULL" : "NOT NULL")}");
             sb.AppendLine(i == columns.Count - 1 ? string.Empty : ",");
         }
-        sb.AppendLine(");");
+        sb.Append(')');
+        if (dbType == SqlGeneratorService.DbType.MySQL && !string.IsNullOrWhiteSpace(tableComment))
+            sb.Append($" COMMENT = '{EscapeLiteral(tableComment.Replace("\\", "\\\\"))}'");
+        sb.AppendLine(";");
+
+        if (string.IsNullOrWhiteSpace(tableComment)) return sb.ToString();
+
+        if (dbType == SqlGeneratorService.DbType.SqlServer)
+        {
+            string[] parts = tableName.Split('.', StringSplitOptions.RemoveEmptyEntries);
+            string procedure = parts.Length > 2 ? $"{QuoteName(dbType, parts[^3])}.sys.sp_addextendedproperty" : "sys.sp_addextendedproperty";
+            string schema = parts.Length > 1 ? $"N'{EscapeLiteral(CleanIdentifier(parts[^2]))}'" : "@QuickTableSchema";
+            if (parts.Length == 1) sb.AppendLine("DECLARE @QuickTableSchema sysname = SCHEMA_NAME();");
+            sb.AppendLine($"EXEC {procedure} @name = N'MS_Description', @value = N'{EscapeLiteral(tableComment)}',");
+            sb.AppendLine($"    @level0type = N'SCHEMA', @level0name = {schema}, @level1type = N'TABLE', @level1name = N'{EscapeLiteral(CleanIdentifier(parts[^1]))}';");
+        }
+        else if (dbType != SqlGeneratorService.DbType.MySQL)
+        {
+            string comment = $"'{EscapeLiteral(tableComment)}'";
+            if (dbType == SqlGeneratorService.DbType.PostgreSQL && tableComment.Contains('\\'))
+                comment = $"E'{EscapeLiteral(tableComment.Replace("\\", "\\\\"))}'";
+            sb.AppendLine($"COMMENT ON TABLE {wrappedTable} IS {comment};");
+        }
         return sb.ToString();
     }
 
@@ -167,9 +190,12 @@ public static class QuickTableService
     private static string QuoteCompositeName(SqlGeneratorService.DbType dbType, string name) =>
         string.Join('.', name.Split('.', StringSplitOptions.RemoveEmptyEntries).Select(part => QuoteName(dbType, part)));
 
+    private static string EscapeLiteral(string value) => value.Replace("'", "''");
+    private static string CleanIdentifier(string name) => name.Trim().Trim('[', ']', '`', '"');
+
     private static string QuoteName(SqlGeneratorService.DbType dbType, string name)
     {
-        string clean = name.Trim().Trim('[', ']', '`', '"');
+        string clean = CleanIdentifier(name);
         return dbType switch
         {
             SqlGeneratorService.DbType.MySQL => $"`{clean.Replace("`", "``")}`",

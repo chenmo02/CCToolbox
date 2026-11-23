@@ -3,6 +3,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Threading;
 
 namespace WpfApp1.Controls;
 
@@ -27,7 +28,7 @@ public sealed class SqlSyntaxLayer : FrameworkElement
     private static readonly Brush Identifier = ColorBrush("#82CCFF");
     private static readonly Brush Punctuation = ColorBrush("#F6C177");
     private static readonly HashSet<string> Keywords = new(
-        ("CREATE GLOBAL TEMPORARY TEMP TABLE DROP IF EXISTS INSERT INTO VALUES ALL SELECT FROM " +
+        ("CREATE GLOBAL TEMPORARY TEMP TABLE DROP COMMENT IF EXISTS INSERT INTO VALUES ALL SELECT FROM " +
          "WHERE AS ON COMMIT PRESERVE DELETE ROWS NOT NULL DEFAULT PRIMARY KEY UNIQUE CONSTRAINT " +
          "ALTER ADD UPDATE SET WITH AND OR IN IS LIKE BETWEEN CASE WHEN THEN ELSE END BEGIN " +
          "DECLARE EXEC EXECUTE TRUE FALSE ORDER BY GROUP HAVING LIMIT OFFSET DISTINCT UNION JOIN " +
@@ -100,7 +101,8 @@ public sealed class SqlSyntaxLayer : FrameworkElement
                 : null;
             if (color != null) _tokens.Add(new Token(match.Index, match.Length, color));
         }
-        InvalidateVisual();
+        // TextBox updates its line layout after TextChanged; draw once that layout is ready.
+        Dispatcher.InvokeAsync(InvalidateVisual, DispatcherPriority.Loaded);
     }
 
     protected override void OnRender(DrawingContext dc)

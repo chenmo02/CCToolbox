@@ -2,19 +2,19 @@
     "schema":  1,
     "product":  "CCToolbox",
     "channel":  "stable",
-    "version":  "2.3.9",
-    "releaseDate":  "2026-11-13",
+    "version":  "2.4.1",
+    "releaseDate":  "2026-11-21",
     "minimumVersion":  "2.3.0",
     "mandatory":  false,
     "downloadUrl":  "https://github.com/chenmo02/CCToolbox/releases/latest",
-    "releaseNotesUrl":  "https://github.com/chenmo02/CCToolbox/releases/tag/v2.3.9",
+    "releaseNotesUrl":  "https://github.com/chenmo02/CCToolbox/releases/tag/v2.4.1",
     "changelog":  [
                       "完整更新记录请查看 GitHub Releases 页面"
                   ],
     "package":  {
-                    "url":  "https://github.com/chenmo02/CCToolbox/releases/download/v2.3.9/CCToolbox.exe",
+                    "url":  "https://github.com/chenmo02/CCToolbox/releases/download/v2.4.1/CCToolbox.exe",
                     "rid":  "win-x64",
-                    "size":  73385304,
-                    "sha256":  "7fac597f0e0463c26a92e19456a8e8d32f1e7081efb7a2c2bd8939bb99d0da6f"
+                    "size":  73386968,
+                    "sha256":  "cc8ac5fbfa9c2ee2ede376cd96beb2ceb4f3eeabafa534e4f684fe373f9816aa"
                 }
 }

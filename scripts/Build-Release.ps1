@@ -139,7 +139,7 @@ try {
     # 5. 官网下载区静态快照
     if (-not $SkipWebsite) {
         $site = Get-Content -Path $websitePath -Raw -Encoding UTF8
-        $regex = [regex]'(<p class="dl-meta">页面为静态快照：<strong>)v\d+\.\d+\.\d+(</strong>（)\d{4}-\d{2}-\d{2}(）· CCToolbox\.exe · )[\d.]+ MB'
+        $regex = [regex]'(<strong id="release-version">)v\d+\.\d+\.\d+(</strong><time>)\d{4}-\d{2}-\d{2}(</time><span>)[\d.]+ MB'
         if ($regex.IsMatch($site)) {
             $replacement = '${1}v' + $Version + '${2}' + $releaseDate + '${3}' + $sizeMB + ' MB'
             $site = $regex.Replace($site, $replacement)

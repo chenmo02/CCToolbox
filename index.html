@@ -1,612 +1,848 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CC 实施工具箱 CCToolbox · 把杂乱数据整理成能用的结果</title>
-<meta name="description" content="CCToolbox 是面向实施现场的 Windows 桌面工具：表格转 SQL、数据校验、差异对比、JSON 处理与发票打印集中在一个窗口。不连数据库、不上传文件，核心处理全部在本机完成。">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CC 实施工具箱 · Windows 数据工作台</title>
+<meta name="description" content="将 Excel 转成 SQL，按表结构检查数据，逐条核对 CSV 和 JSON 差异。CC 实施工具箱在 Windows 本机处理文件，双击即可运行。">
 <meta property="og:type" content="website">
-<meta property="og:title" content="CC 实施工具箱 · 把杂乱数据整理成能用的结果">
-<meta property="og:description" content="本地运行的 Windows 数据工具箱，单文件免安装，约 70 MB。">
+<meta property="og:title" content="CC 实施工具箱 · Windows 数据工作台">
+<meta property="og:description" content="从原始表格到可交付的 SQL 和核对报告，一套在本机工作的 Windows 桌面工具。">
 <meta property="og:url" content="https://chenmo02.github.io/CCToolbox/">
 <meta property="og:image" content="https://chenmo02.github.io/CCToolbox/img/app-icon.png">
-<meta name="theme-color" content="#fffef5">
+<meta name="theme-color" content="#f7f2e6">
 <link rel="icon" type="image/png" href="img/app-icon.png">
-<!--
-  部署说明（GitHub Pages）
-  1. 本文件放在仓库 main 分支根目录；同时保留 img/app-icon.png（由 WpfApp1/favicon.ico 转出的程序图标）。
-  2. Settings → Pages → Deploy from a branch → main / (root) → Save。
-  3. 站点地址：https://chenmo02.github.io/CCToolbox/
-  4. 链接已指向真实仓库 chenmo02/CCToolbox；若仓库再次改名，全局替换 github.com/chenmo02/CCToolbox。
-  5. 版本信息是静态快照，发新版后请同步更新「下载」区的 Release 说明，并运行 scripts/publish-update-manifest.ps1 重新生成 updates/stable/latest.json。
-  6. 国内备用下载（蓝奏云）地址与提取密码见 #download 的「国内下载」卡；换链接或改密码时，同步修改该卡、首屏提示、FAQ 与页脚链接。
-  风格：Hand-Drawn Doodle（stylekit.top），配色 / 虚线 / 彩影 / 胶带遵循其 design.md。
--->
 <style>
-:root{
-  --ink:#2c2c2c; --paper:#fffef5;
-  --red:#ff6b6b; --teal:#4ecdc4; --yellow:#ffd93d; --olive:#a98d16;
-  --font-display:'Baloo 2','Comic Sans MS','Trebuchet MS','PingFang SC','Microsoft YaHei',sans-serif;
-  --font-body:'Nunito','Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
-  --wrap:min(1080px,92vw);
+:root {
+  --paper: #f7f2e6;
+  --white: #fffcf4;
+  --blue: #2341c5;
+  --ink: #1a2a73;
+  --muted: #465181;
+  --red: #c53729;
+  --yellow: #ffcf59;
+  --pink: #facfc9;
+  --mint: #d5e9cf;
+  --lilac: #dddff9;
+  --shadow: #23276b35;
+  --line: #24397a35;
+  --font: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --mono: "IBM Plex Mono", Consolas, "Microsoft YaHei", monospace;
+  --ease: cubic-bezier(.2,.8,.2,1);
 }
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth;scroll-padding-top:88px}
-body{
-  font-family:var(--font-body);font-size:16px;line-height:1.65;color:var(--ink);
-  background-color:var(--paper);
-  background-image:repeating-linear-gradient(transparent,transparent 31px,rgba(168,200,232,.26) 31px,rgba(168,200,232,.26) 32px);
-  overflow-x:clip;
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+body {
+  margin: 0;
+  color: var(--ink);
+  background: radial-gradient(circle at 1px 1px, #73603b0d .6px, transparent .9px) 0 0 / 4px 4px, var(--paper);
+  font: 400 16px/1.7 var(--font);
 }
-body::before{content:"";position:fixed;left:min(7vw,120px);top:0;bottom:0;width:1px;background:rgba(255,107,107,.3);pointer-events:none;z-index:0}
-img,svg{display:block;max-width:100%}
-a{color:inherit;text-decoration:none}
-button{font:inherit;color:inherit;cursor:pointer}
-.wrap{width:var(--wrap);margin-inline:auto;position:relative;z-index:1}
-.skip{position:absolute;left:-9999px;top:0;z-index:100;background:var(--yellow);border:2px dashed var(--ink);padding:10px 16px;font-weight:600}
-.skip:focus{left:12px;top:12px}
-:focus-visible{outline:3px dashed var(--teal);outline-offset:4px}
-
-/* ---------- 共享涂鸦组件 ---------- */
-.btn{
-  display:inline-flex;align-items:center;gap:9px;justify-content:center;
-  background:var(--paper);border:2px dashed var(--ink);border-radius:2px;
-  padding:12px 24px;font-family:var(--font-display);font-size:18px;font-weight:800;
-  letter-spacing:.02em;color:var(--ink);box-shadow:4px 4px 0 var(--red);
-  transition:150ms linear;
+h1, h2, h3, p, figure, pre, ol, ul { margin: 0; }
+h1, h2, h3 { line-height: 1.17; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+button { font: inherit; color: inherit; cursor: pointer; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 3px solid var(--red); outline-offset: 5px; }
+.wrap { width: min(1100px, calc(100% - 64px)); margin-inline: auto; }
+.visually-hidden, .skip:not(:focus) {
+  position: absolute;
+  width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
 }
-.btn:hover{background:var(--ink);color:var(--paper);transform:translate(-1px,-4px) rotate(1deg);box-shadow:6px 6px 0 var(--teal)}
-.btn:active{transform:translate(3px,3px) scale(.98);box-shadow:none}
-.btn.btn-teal{box-shadow:4px 4px 0 var(--teal)}
-.btn.btn-teal:hover{box-shadow:6px 6px 0 var(--yellow);color:var(--ink);background:var(--yellow)}
-.btn.btn-sm{padding:8px 16px;font-size:15px;box-shadow:3px 3px 0 var(--yellow)}
-.btn .ico{width:18px;height:18px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
-.note{
-  position:relative;background:var(--paper);border:3px dashed var(--ink);border-radius:2px;
-  padding:32px;box-shadow:5px 5px 0 var(--yellow);transition:150ms linear;
+.skip { position: fixed; top: 10px; left: 10px; z-index: 5; background: var(--white); padding: 8px 12px; }
+
+.masthead {
+  position: sticky; top: 0; z-index: 4;
+  background: #f7f2e6f5; border-bottom: 1px solid var(--line);
 }
-.note:hover{transform:translateY(-4px) rotate(-1deg);box-shadow:8px 8px 0 var(--red)}
-.note h3{font-family:var(--font-display);font-size:24px;font-weight:800;line-height:1.25;transform:rotate(-3deg);transform-origin:left center;transition:150ms linear;margin-bottom:12px}
-.note:hover h3{transform:rotate(0)}
-.note p{font-size:15px;line-height:1.7}
-.note.red{box-shadow:5px 5px 0 var(--red)}
-.note.teal{box-shadow:5px 5px 0 var(--teal)}
-.tilt-l{transform:rotate(-1.5deg)}
-.tilt-r{transform:rotate(1.5deg)}
-.tilt-l:hover,.tilt-r:hover{transform:translateY(-4px) rotate(0)}
-.tape::before{
-  content:"";position:absolute;top:-11px;left:50%;width:96px;height:24px;
-  transform:translateX(-50%) rotate(-4deg);background:rgba(255,217,61,.8);
-  clip-path:polygon(0 0,100% 0,97% 50%,100% 100%,0 100%,3% 50%);
+.masthead-inner {
+  min-height: 72px; display: grid; grid-template-columns: 1fr auto 1fr;
+  align-items: center; gap: 20px;
 }
-.tape-right::before{left:auto;right:28px;transform:rotate(6deg)}
-.pin{position:absolute;top:-14px;right:26px;width:22px;height:22px;border-radius:60% 40% 50% 50%;background:var(--red);border:2px dashed var(--ink);box-shadow:2px 2px 0 var(--ink)}
-.pin::after{content:"";position:absolute;top:4px;left:5px;width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.8)}
-.kicker{
-  display:inline-block;background:var(--yellow);border:2px dashed var(--ink);border-radius:60% 40% 50% 50% / 50% 55% 45% 50%;
-  padding:5px 16px;font-family:var(--font-display);font-size:14px;font-weight:800;letter-spacing:.12em;
-  box-shadow:3px 3px 0 var(--red);transform:rotate(-2deg);margin-bottom:22px;
+.brand {
+  display: inline-flex; align-items: center; gap: 9px; width: fit-content;
+  text-decoration: none; color: var(--blue);
+  font: italic 900 25px/1 "Arial Black", var(--font); letter-spacing: -.055em;
 }
-.mark{text-decoration:underline wavy var(--red);text-underline-offset:7px;text-decoration-thickness:2px}
-.hl{background:linear-gradient(104deg,transparent 1%,rgba(255,217,61,.42) 3%,rgba(255,217,61,.3) 97%,transparent 99%);padding:0 5px}
-.tag{display:inline-block;background:rgba(78,205,196,.22);border:2px dashed var(--ink);border-radius:2px;padding:1px 7px;font-size:.92em;line-height:1.4}
-.tag-y{background:rgba(255,217,61,.45)}
-.section{padding:96px 0 0}
-.sec-head{max-width:760px;margin-bottom:48px}
-.sec-head h2{font-family:var(--font-display);font-size:clamp(28px,3.6vw,40px);font-weight:800;line-height:1.15;transform:rotate(-1deg);transform-origin:left center}
-.sec-head p{margin-top:18px;font-size:17px;max-width:680px}
-/* 手写便签式断行：<br class="line-br"> 只落在句号/逗号处；短句内部仍自然折行 */
-.sec-head p,.note p,.step p,.limit,.feature-list li{text-wrap:pretty}
-.grid-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
-.grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
-.grid-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
-.reveal{opacity:0;translate:0 18px;transition:opacity .35s linear,translate .35s linear}
-.reveal.on{opacity:1;translate:0 0}
-
-/* ---------- 导航 ---------- */
-.nav{position:sticky;top:0;z-index:50;background:var(--paper);border-bottom:2px dashed var(--ink)}
-.nav-inner{display:flex;align-items:center;justify-content:space-between;gap:18px;min-height:68px}
-.brand{display:flex;align-items:center;gap:10px;font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:.02em;flex:none}
-.brand-mark{width:34px;height:34px;flex:none;object-fit:contain;transform:rotate(-6deg)}
-.nav-links{display:flex;align-items:center;gap:2px;flex-wrap:wrap}
-.nav-links a{padding:7px 12px;font-size:15px;font-weight:600;border-radius:2px;transition:150ms linear;white-space:nowrap}
-.nav-links a:hover{background:var(--yellow)}
-.nav-links a.active{background:var(--teal);box-shadow:2px 2px 0 var(--ink)}
-.nav-actions{display:flex;align-items:center;gap:10px;flex:none}
-.menu-btn{display:none;width:38px;height:38px;background:var(--paper);border:2px dashed var(--ink);border-radius:2px;box-shadow:3px 3px 0 var(--teal);font-size:18px;font-weight:800;line-height:1}
-
-/* ---------- Hero ---------- */
-.hero{padding:88px 0 24px;position:relative}
-.hero-inner{display:grid;grid-template-columns:1.06fr .94fr;gap:56px;align-items:center}
-.badge{display:inline-flex;align-items:center;gap:8px;background:var(--teal);border:2px dashed var(--ink);padding:5px 15px;font-weight:800;font-size:14px;box-shadow:3px 3px 0 var(--ink);transform:rotate(-2deg);margin-bottom:24px}
-.badge::before{content:"";width:9px;height:9px;border-radius:60% 40% 50% 50%;background:var(--red);border:1px dashed var(--ink)}
-.hero h1{font-family:var(--font-display);font-size:clamp(34px,4.6vw,52px);font-weight:800;line-height:1.14;letter-spacing:.01em}
-.hero .lead{margin-top:22px;font-size:17px;line-height:1.75;max-width:520px}
-.cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:30px}
-.hero-meta{margin-top:20px;font-size:14px;font-weight:600;opacity:.78}
-.hero-art{position:relative;display:flex;justify-content:center;padding:18px 10px 26px}
-.polaroid{position:relative;width:min(340px,100%);background:var(--paper);border:3px dashed var(--ink);padding:16px 16px 46px;box-shadow:7px 7px 0 var(--teal);transform:rotate(2deg)}
-.polaroid img{width:100%;aspect-ratio:1/1;object-fit:contain;background:rgba(255,255,255,.55);border:2px dashed rgba(44,44,44,.35)}
-.polaroid .cap{position:absolute;left:0;right:0;bottom:12px;text-align:center;font-family:var(--font-display);font-weight:800;font-size:17px;transform:rotate(-2deg)}
-.star{position:absolute;width:46px;height:46px;top:-8px;left:2px;transform:rotate(-12deg)}
-.star path{fill:var(--yellow);stroke:var(--ink);stroke-width:2.4;stroke-dasharray:6 3;stroke-linejoin:round}
-.scribble{position:absolute;right:-6px;bottom:0;background:var(--yellow);border:2px dashed var(--ink);padding:5px 12px;font-family:var(--font-display);font-weight:800;font-size:14px;transform:rotate(-5deg);box-shadow:3px 3px 0 var(--red)}
-.hero-arrow{position:absolute;left:-18px;bottom:34px;width:92px;height:62px;transform:rotate(-14deg)}
-.hero-arrow path{fill:none;stroke:var(--red);stroke-width:3;stroke-linecap:round;stroke-dasharray:7 5}
-.circle-mark{position:absolute;right:6px;top:4px;width:180px;height:64px;transform:rotate(-6deg);pointer-events:none}
-.circle-mark path{fill:none;stroke:var(--red);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:5 4}
-
-/* ---------- 数字便签 ---------- */
-.stats{padding-top:56px}
-.stat{background:var(--paper);border:3px dashed var(--ink);padding:22px 20px;text-align:center;box-shadow:5px 5px 0 var(--yellow)}
-.stat:nth-child(2){box-shadow:5px 5px 0 var(--red)}
-.stat:nth-child(3){box-shadow:5px 5px 0 var(--teal)}
-.stat:nth-child(4){box-shadow:5px 5px 0 var(--olive)}
-.stat b{display:block;font-family:var(--font-display);font-size:44px;font-weight:800;line-height:1.1;transform:rotate(-3deg)}
-.stat span{display:block;margin-top:8px;font-size:14px;font-weight:600}
-.stat-note{margin-top:16px;font-size:13px;line-height:1.7;opacity:.8}
-
-/* ---------- 功能卡 ---------- */
-.feature-list{list-style:none;margin-top:16px}
-.feature-list li{position:relative;padding-left:24px;font-size:15px;line-height:1.9}
-.feature-list li::before{content:"";position:absolute;left:2px;top:11px;width:10px;height:10px;background:var(--teal);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%;transform:rotate(18deg)}
-.feature-icon{width:42px;height:42px;margin-bottom:14px}
-.feature-icon path,.feature-icon rect,.feature-icon circle{fill:none;stroke:var(--ink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 3}
-.feature-icon .fill{fill:var(--yellow);stroke:var(--ink)}
-.matrix-wrap{margin-top:48px;overflow-x:auto;padding-bottom:12px}
-.matrix{width:100%;min-width:560px;border-collapse:collapse;font-size:15px}
-.matrix th,.matrix td{border:2px dashed var(--ink);padding:13px 14px;text-align:center}
-.matrix th{background:var(--yellow);font-family:var(--font-display);font-weight:800}
-.matrix td:first-child{text-align:left;font-weight:600;background:rgba(255,255,255,.5)}
-.matrix .yes{font-family:var(--font-display);font-size:22px;font-weight:800;color:#0f6e56}
-.matrix .no{color:#993c1d;font-weight:800}
-.matrix-note{margin-top:14px;font-size:13px;opacity:.8}
-
-/* ---------- 上手步骤 ---------- */
-.steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px;counter-reset:step}
-.step{position:relative;background:var(--paper);border:3px dashed var(--ink);padding:30px 22px 24px;box-shadow:5px 5px 0 var(--teal)}
-.step:nth-child(even){box-shadow:5px 5px 0 var(--yellow)}
-.step .num{position:absolute;top:-20px;left:18px;width:42px;height:42px;display:grid;place-items:center;background:var(--red);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%;font-family:var(--font-display);font-size:22px;font-weight:800;box-shadow:3px 3px 0 var(--ink);transform:rotate(-8deg)}
-.step h3{font-family:var(--font-display);font-size:20px;font-weight:800;margin:12px 0 10px}
-.step p{font-size:14px;line-height:1.7}
-.step-arrow{position:absolute;right:-24px;top:44%;width:28px;height:20px;z-index:2}
-.step-arrow path{fill:none;stroke:var(--red);stroke-width:2.6;stroke-linecap:round;stroke-dasharray:5 3}
-
-/* ---------- 边界便签 ---------- */
-.limit{background:var(--paper);border:2px dashed var(--ink);padding:20px 22px;box-shadow:4px 4px 0 var(--yellow);font-size:14px;line-height:1.7}
-.limit b{display:block;font-family:var(--font-display);font-size:17px;font-weight:800;margin-bottom:6px}
-.limit:nth-child(3n+2){box-shadow:4px 4px 0 var(--red)}
-.limit:nth-child(3n+3){box-shadow:4px 4px 0 var(--teal)}
-.limits-foot{margin-top:22px;font-size:14px}
-
-/* ---------- FAQ ---------- */
-.faq{display:grid;gap:16px}
-.faq details{background:var(--paper);border:2px dashed var(--ink);padding:18px 22px;box-shadow:4px 4px 0 var(--yellow);transition:150ms linear}
-.faq details[open]{box-shadow:6px 6px 0 var(--teal)}
-.faq summary{font-family:var(--font-display);font-size:18px;font-weight:800;cursor:pointer;list-style:none;display:flex;justify-content:space-between;gap:12px}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary::after{content:"+";font-size:22px;line-height:1;color:var(--red)}
-.faq details[open] summary::after{content:"−"}
-.faq p{margin-top:14px;font-size:15px;line-height:1.75}
-
-/* ---------- 下载 ---------- */
-.hero-mirror{margin-top:8px;font-size:14px}
-.hero-mirror a{border-bottom:2px wavy var(--red);font-weight:800}
-.hero-mirror a:hover{background:var(--yellow)}
-.dl-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:28px}
-.dl-card{padding:36px 32px}
-.dl-card h3{font-size:clamp(22px,2.3vw,28px)}
-.dl-card .dl-buttons{display:flex;gap:14px;flex-wrap:wrap;margin-top:26px}
-.dl-meta{margin-top:22px;font-size:13px;line-height:1.8;opacity:.85}
-.dl-meta strong{color:var(--olive)}
-.dl-alt{list-style:none;margin-top:14px}
-.dl-alt li{padding:8px 0 8px 22px;position:relative;font-size:14px;line-height:1.6}
-.dl-alt li::before{content:"";position:absolute;left:0;top:15px;width:10px;height:10px;background:var(--red);border:2px dashed var(--ink);border-radius:60% 40% 50% 50%}
-.dl-pw{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:22px}
-.dl-pw .pw-label{font-size:14px;font-weight:800}
-.dl-pw code{font-family:var(--font-display);font-size:20px;font-weight:800;letter-spacing:.16em;background:var(--yellow);border:2px dashed var(--ink);padding:1px 12px;box-shadow:3px 3px 0 var(--ink)}
-.copy-btn{background:var(--paper);border:2px dashed var(--ink);border-radius:2px;padding:5px 12px;font-size:13px;font-weight:800;box-shadow:3px 3px 0 var(--teal);transition:150ms linear}
-.copy-btn:hover{background:var(--teal);transform:translate(-1px,-2px)}
-.copy-btn:active{transform:translate(2px,2px);box-shadow:none}
-.copy-btn.done{background:var(--teal)}
-
-/* ---------- 页脚 ---------- */
-.footer{margin-top:96px;border-top:3px dashed var(--ink);padding:36px 0 48px;position:relative;z-index:1}
-.footer-inner{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:20px}
-.footer-links{display:flex;flex-wrap:wrap;gap:18px;font-weight:600;font-size:15px}
-.footer-links a{border-bottom:2px wavy var(--red);padding-bottom:2px}
-.footer-links a:hover{background:var(--yellow)}
-.footer .sign{font-family:var(--font-display);font-weight:800;font-size:16px;transform:rotate(-2deg)}
-
-/* ---------- 响应式 ---------- */
-@media(max-width:980px){
-  .hero-inner{grid-template-columns:1fr;gap:40px}
-  .hero-art{order:-1;max-width:420px;margin-inline:auto;width:100%}
-  .grid-3,.grid-4,.steps{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .step-arrow{display:none}
-  .dl-grid{grid-template-columns:1fr}
-  .section{padding-top:72px}
+.brand img { width: 32px; height: 32px; object-fit: contain; transform: rotate(-9deg); }
+.brand span span { color: var(--red); }
+.nav-links { display: flex; align-items: center; gap: clamp(16px, 3vw, 40px); }
+.nav-links a {
+  padding-block: 8px; font-size: 14px; font-weight: 750;
+  text-decoration: none; text-underline-offset: 5px;
 }
-@media(max-width:760px){
-  body::before{display:none}
-  .nav-links{display:none;position:absolute;top:100%;left:0;right:0;background:var(--paper);border-bottom:3px dashed var(--ink);padding:12px 4vw 18px;flex-direction:column;align-items:stretch;gap:4px;box-shadow:0 6px 0 rgba(255,217,61,.6)}
-  .nav-links.open{display:flex}
-  .menu-btn{display:block}
-  .nav-actions .btn{display:none}
-  .grid-2,.grid-3,.grid-4,.steps{grid-template-columns:1fr}
-  .note{padding:24px}
-  .note h3{font-size:21px}
-  .tilt-l,.tilt-r{transform:none}
-  .polaroid{transform:rotate(0)}
-  .star{width:36px;height:36px}
-  .circle-mark{display:none}
-  .section{padding-top:64px}
-  .sec-head h2{transform:none}
-  .footer-inner{flex-direction:column;align-items:flex-start}
+.nav-links a:hover { color: var(--blue); text-decoration: underline wavy 1px; }
+.masthead .sticker { justify-self: end; }
+.sticker {
+  --face: var(--blue); --text: var(--white); --tilt: -2deg;
+  display: inline-flex; align-items: center; justify-content: center; gap: .65em;
+  min-height: 55px; padding: 10px 25px;
+  border: 3px solid var(--white); border-radius: 15px 17px 12px 16px / 15px 15px 17px 14px;
+  outline: 1px solid #24397a35;
+  box-shadow: 3px 5px 0 var(--shadow), inset 0 0 0 1px #24397a45;
+  background: var(--face); color: var(--text);
+  font-size: 16px; font-weight: 850; text-decoration: none; white-space: nowrap;
+  transform: rotate(var(--tilt)); touch-action: manipulation;
+  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
 }
-@media(prefers-reduced-motion:reduce){
-  html{scroll-behavior:auto}
-  *{transition:none!important;animation:none!important}
-  .reveal{opacity:1;translate:0 0}
-  .btn:hover,.note:hover,.tilt-l:hover,.tilt-r:hover{transform:none}
+.sticker:hover { transform: translateY(-4px) rotate(1deg); box-shadow: 4px 8px 0 var(--shadow); }
+.sticker:active { transform: translateY(3px) rotate(0); box-shadow: 1px 1px 0 var(--shadow); }
+.sticker:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+.sticker--white { --face: var(--white); --text: var(--blue); --tilt: 2deg; }
+.sticker--small { min-height: 39px; padding: 5px 15px; font-size: 13px; }
+
+.hero { padding-top: clamp(42px, 6vw, 84px); }
+.hero-layout {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .91fr);
+  gap: clamp(24px, 4vw, 64px); align-items: center;
+}
+.hero-copy { min-width: 0; }
+.tape {
+  display: inline-block; color: var(--ink); font-size: 14px; font-weight: 850;
+  padding: 6px 16px; transform: rotate(-4deg);
+  background: repeating-linear-gradient(125deg, #ffffff39 0 5px, transparent 5px 11px), var(--yellow);
+  clip-path: polygon(1% 3%, 98% 0, 100% 20%, 98% 40%, 100% 62%, 98% 81%, 100% 96%, 0 100%, 2% 82%, 0 65%, 2% 43%, 0 23%);
+}
+.hero h1 {
+  margin: 23px 0 16px; width: fit-content;
+  font-size: clamp(55px, 7vw, 99px); font-weight: 950; line-height: .99;
+  color: var(--blue); letter-spacing: -.065em; transform: skew(-6deg); transform-origin: left center;
+}
+.hero h1 span { display: block; width: fit-content; }
+.hero h1 span:first-child { rotate: -2deg; }
+.hero h1 span:last-child { position: relative; isolation: isolate; rotate: 1deg; }
+.hero h1 span:last-child::after {
+  content: ""; position: absolute; z-index: -1; inset: auto 9% -1.5% 2%; height: .12em;
+  background: var(--yellow); border-radius: 50% 19% 40% 21% / 67% 79% 24% 40%;
+  transform-origin: left; animation: underline .55s .48s var(--ease) both;
+}
+.hero .intro { max-width: 485px; margin-top: 24px; font-size: clamp(15px, 1.65vw, 18px); text-wrap: pretty; }
+.intro span { display: block; }
+.hero-actions, .download-actions { display: flex; flex-wrap: wrap; gap: 15px; margin-top: 24px; }
+.hero-actions .primary { padding-inline: 31px; }
+.platform { margin-top: 17px; color: var(--muted); font-size: 13px; font-weight: 650; }
+.platform a { margin-left: .45em; text-underline-offset: 3px; }
+.hero-copy > .tape, .hero h1, .intro, .hero-actions, .platform {
+  animation: rise .6s var(--ease) both;
+}
+.hero h1 { animation-delay: .08s; }
+.intro { animation-delay: .16s; }
+.hero-actions, .platform { animation-delay: .24s; }
+
+.hero-art {
+  display: grid; justify-items: center; max-width: 480px; width: 100%; margin-inline: auto;
+  animation: rise .65s .2s var(--ease) both;
+}
+.art-stage { position: relative; isolation: isolate; width: 100%; aspect-ratio: 1.16; }
+.art-halo {
+  position: absolute; inset: 7% 11% 5% 9%;
+  border: 1.5px solid var(--ink); border-radius: 50% 47% 49% 53% / 48% 51% 49% 52%;
+  background: repeating-conic-gradient(from 8deg, #fff7d183 0 12deg, transparent 12deg 24deg), #ffdb77;
+  transform: rotate(-12deg);
+}
+.art-halo::before {
+  content: ""; position: absolute; inset: -6%; border: 2px dashed #2341c56b;
+  border-radius: 45% 51% 56% 51%; transform: rotate(15deg);
+}
+.tomato {
+  position: absolute; left: 26%; top: 16%; width: 51%; padding: 2.5%;
+  border-radius: 51% 52% 46% 50% / 55% 53% 43% 50%; background: var(--white);
+  box-shadow: 5px 7px 0 #29327744; transform: rotate(9deg);
+  animation: mascot-in .85s .32s var(--ease) backwards, mascot-bob 1.3s 1.2s ease-in-out 2;
+}
+.tomato img { width: 100%; height: auto; }
+.art-spark {
+  position: absolute; color: var(--blue); font: clamp(22px, 4.3vw, 53px)/1 Georgia, serif;
+  animation: sparkle 1.15s .85s ease-in-out 2;
+}
+.art-spark--top { right: 15%; top: 4%; transform: rotate(11deg); }
+.art-spark--side { left: 6%; bottom: 17%; color: var(--red); transform: rotate(-11deg); animation-delay: 1.15s; }
+.art-ticket {
+  --tilt: -12deg;
+  position: absolute; display: grid; justify-items: center; gap: 3px; padding: 1.8% 3%;
+  background: var(--mint); color: var(--blue); border: 3px solid var(--white);
+  outline: 1px solid var(--line); border-radius: 11px 15px 12px 9px;
+  box-shadow: 3px 5px 0 #29327744; transform: rotate(var(--tilt));
+  font: italic 900 clamp(12px, 1.8vw, 22px)/1.2 var(--mono); text-decoration: none;
+  transition: transform .25s var(--ease), box-shadow .25s var(--ease);
+  animation: ticket-in .68s var(--delay, .34s) var(--ease) backwards;
+}
+.art-ticket:hover { transform: translateY(-7px) rotate(0) scale(1.05); box-shadow: 4px 8px 0 #29327744; }
+.art-ticket:active { transform: translateY(3px) rotate(0); box-shadow: 1px 1px 0 #29327744; }
+.art-ticket--csv { left: 0; top: 14%; width: 29%; }
+.art-ticket--csv .graphic-table { aspect-ratio: 2.45; }
+.art-ticket--check { --tilt: -7deg; --delay: .46s; left: 19%; bottom: 6%; background: var(--white); }
+.art-ticket--check span { color: #245839; }
+.art-ticket--diff { --tilt: 11deg; --delay: .58s; right: 3%; bottom: 19%; background: var(--pink); }
+.art-ticket--diff span { color: var(--red); }
+.hero-art figcaption { color: var(--muted); font-size: 13px; font-weight: 750; }
+
+.preview {
+  min-width: 0; margin: 40px 0 0; padding: 17px 23px 22px;
+  background-color: var(--lilac);
+  background-image: linear-gradient(#2341c512 1px, transparent 1px), linear-gradient(90deg, #2341c512 1px, transparent 1px);
+  background-size: 20px 20px; background-position: center;
+  border: 2px solid var(--blue); border-radius: 21px 17px 23px 16px / 16px 24px 17px 22px;
+  box-shadow: 5px 6px 0 var(--blue); text-align: left;
+  animation: rise .7s .34s var(--ease) both;
+}
+.preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px 20px; margin-bottom: 16px; }
+.preview-title { font-weight: 900; font-size: 16px; white-space: nowrap; }
+.choices { display: flex; flex-wrap: wrap; gap: 6px; }
+.choices label { position: relative; }
+.choices label span {
+  display: grid; place-items: center; min-height: 37px; padding: 5px 12px;
+  border: 1px solid transparent; border-radius: 8px 6px 8px 7px;
+  font-size: 13px; font-weight: 800; white-space: nowrap; cursor: pointer;
+  transition: background .2s, transform .2s var(--ease), box-shadow .2s;
+}
+.choices label:hover span { background: #ffffff90; }
+.choices input:checked + span {
+  border-color: var(--ink); background: var(--white); box-shadow: 2px 2px 0 var(--blue); transform: rotate(-2deg);
+}
+.choices input:focus-visible + span { outline: 3px solid var(--red); outline-offset: 3px; }
+.demo { display: none; grid-template-columns: 1fr 22px 1fr; align-items: center; gap: 10px; }
+.preview:has(#demo-sql:checked) .demo--sql,
+.preview:has(#demo-check:checked) .demo--check,
+.preview:has(#demo-diff:checked) .demo--diff { display: grid; }
+.demo-card {
+  min-width: 0; align-self: stretch; overflow: hidden;
+  background: var(--white); border: 1.5px solid var(--ink); border-radius: 9px 7px 8px 6px;
+  animation: swap .28s var(--ease) both;
+}
+.demo-card + .demo-arrow + .demo-card { animation-delay: .04s; }
+.demo-card figcaption {
+  display: flex; gap: 6px; align-items: center;
+  font-size: 12px; font-weight: 850; padding: 6px 10px; border-bottom: 1px solid var(--line);
+}
+.demo-card figcaption::before {
+  content: ""; background: var(--yellow); border: 1px solid var(--ink); border-radius: 50%; width: 8px; height: 8px; flex: none;
+}
+.demo-card pre {
+  color: var(--ink); font: clamp(11px, 1.4vw, 13px)/1.62 var(--mono);
+  min-height: calc(6.48em + 18px); padding: 9px 10px; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.demo-card strong { color: var(--blue); }
+.demo-card .changed { color: #a12b20; font-weight: 750; }
+.demo-arrow { color: var(--blue); text-align: center; font-size: 22px; font-weight: 900; }
+
+.section { margin-top: clamp(62px, 8vw, 108px); }
+.section-head { margin-bottom: 27px; }
+.section-head h2, .download-copy h2 {
+  font-size: clamp(30px, 4.7vw, 57px); font-weight: 950; letter-spacing: -.05em; color: var(--blue);
+  text-wrap: balance;
+}
+.section-head p { margin-top: 10px; color: var(--muted); }
+.tour-board { min-width: 0; padding: 0; margin: 0; border: 0; }
+.tour-tabs { margin-bottom: 15px; gap: 9px; }
+.tour-tabs label span {
+  min-height: 44px; padding-inline: 15px; border: 1px solid var(--line);
+  background: var(--white); white-space: normal;
+}
+.tour-tabs input:checked + span { background: var(--yellow); }
+.tour-scene {
+  --mat: var(--lilac);
+  display: none; grid-template-columns: minmax(0, 1.85fr) minmax(0, 1fr); align-items: center;
+  gap: clamp(22px, 3vw, 38px); padding: clamp(16px, 3vw, 34px);
+  background: radial-gradient(circle, #2341c523 .9px, transparent 1.1px) center / 16px 16px, var(--mat);
+  border: 2px solid var(--blue); border-radius: 22px 17px 21px 15px / 17px 24px 15px 24px;
+  box-shadow: 5px 6px 0 var(--blue);
+}
+.tour-scene--check { --mat: var(--mint); }
+.tour-scene--diff { --mat: var(--pink); }
+.tour-board:has(#tour-sql:checked) .tour-scene--sql,
+.tour-board:has(#tour-check:checked) .tour-scene--check,
+.tour-board:has(#tour-diff:checked) .tour-scene--diff { display: grid; }
+.tour-shot, .tour-story { animation: swap .35s var(--ease) both; }
+.tour-story { animation-delay: .08s; }
+.tour-shot {
+  display: block; position: relative; align-self: center; background: var(--white);
+  padding: 8px; border: 1px solid var(--blue); border-radius: 12px 10px 11px 13px;
+  box-shadow: 3px 5px 0 var(--shadow); text-decoration: none;
+  transition: box-shadow .2s, transform .2s var(--ease);
+}
+.tour-shot:hover { transform: translateY(-4px) rotate(-.5deg); box-shadow: 4px 8px 0 var(--shadow); }
+.tour-shot img {
+  width: 100%; height: auto; aspect-ratio: 1.68; object-fit: contain;
+  background: #eef1f4; border-radius: 6px;
+}
+.tour-shot span { display: block; padding: 4px 4px 0; font-size: 13px; font-weight: 800; }
+.tour-story h3 { margin: 0 0 9px; font-size: clamp(23px, 3vw, 34px); font-weight: 950; letter-spacing: -.04em; }
+.tour-story > p, .tour-story ol { font-size: 14px; }
+.tour-story ol { margin-top: 13px; padding-left: 1.5em; }
+.tour-story li + li { margin-top: 5px; }
+.tour-story li::marker { color: var(--blue); font-weight: 900; }
+.tour-story .tour-output { margin-top: 15px; padding-top: 10px; border-top: 1px dashed var(--line); }
+
+.feature-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 19px; }
+.feature {
+  --card: var(--white);
+  padding: clamp(17px, 3vw, 28px); background: var(--card);
+  border: 1.5px solid var(--blue); border-radius: 17px 15px 19px 13px / 14px 19px 15px 20px;
+  box-shadow: 3px 4px 0 var(--shadow);
+}
+.feature:nth-child(even) { --enter-delay: 85ms; }
+.feature-head { display: grid; grid-template-columns: minmax(0, 1fr) 64px; align-items: center; gap: 12px; min-height: 61px; }
+.feature--check { --card: #ffe6a0; }
+.feature--diff { --card: var(--pink); }
+.feature--daily { --card: var(--mint); }
+.feature h3 { font-size: clamp(21px, 2.6vw, 29px); font-weight: 900; letter-spacing: -.03em; }
+.feature dl { display: grid; grid-template-columns: 1fr; margin: 13px 0 0; }
+.feature dt { padding-top: 9px; border-top: 1px solid var(--line); font-size: 15px; font-weight: 900; }
+.feature dd { margin: 2px 0 10px; font-size: 14px; text-wrap: pretty; }
+.feature dd:last-child { margin-bottom: 0; }
+.feature-art {
+  display: grid; place-items: center; width: 100%; height: 53px;
+  border: 3px solid var(--white); outline: 1px solid var(--line); border-radius: 11px 14px 12px 16px;
+  background: var(--lilac); box-shadow: 2px 4px 0 var(--shadow);
+  transform: rotate(-9deg); color: var(--blue); font: italic 900 clamp(18px, 3vw, 34px)/1 var(--mono);
+  transition: translate .25s var(--ease), rotate .25s var(--ease);
+}
+.feature:hover .feature-art { translate: 0 -4px; rotate: 8deg; }
+.graphic-table {
+  width: 100%; border: 2px solid var(--blue); border-radius: 4px 3px 4px 2px;
+  background: linear-gradient(90deg, transparent 32%, var(--blue) 32% 34%, transparent 34% 65%, var(--blue) 65% 67%, transparent 67%),
+              linear-gradient(transparent 31%, var(--blue) 31% 35%, transparent 35% 64%, var(--blue) 64% 68%, transparent 68%),
+              var(--white);
+}
+.feature--check .feature-art { background: var(--white); border-radius: 50%; width: min(100%, 75px); justify-self: center; transform: rotate(9deg); }
+.feature--diff .feature-art { transform: rotate(7deg); background: var(--white); }
+.feature--daily .feature-art { width: 72%; justify-self: center; transform: rotate(-12deg); background: var(--white); }
+.paper-lines { width: 62%; height: 60%; background: repeating-linear-gradient(transparent 0 7px, var(--blue) 7px 9px); }
+
+.support {
+  display: grid; grid-template-columns: minmax(0, 1.38fr) minmax(0, 1fr); gap: 16px;
+}
+.support-card {
+  padding: clamp(17px, 2.8vw, 26px); background: var(--white);
+  border: 1px solid var(--blue); border-radius: 17px 18px 15px 15px;
+  box-shadow: 3px 4px 0 var(--shadow);
+}
+.support-card--files { background: var(--lilac); }
+.support-card h3 { font-size: 21px; font-weight: 900; }
+.support-card > p { margin-top: 12px; font-size: 14px; }
+.db-list { list-style: none; margin-top: 15px; padding: 0; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.db-list li { padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px 9px 6px 8px; background: var(--paper); }
+.db-list b, .db-list span { display: block; overflow-wrap: anywhere; }
+.db-list b { font: 800 14px/1.5 var(--mono); }
+.db-list span { font-size: 12px; }
+.file-list { margin: 11px 0 0; font-size: 14px; }
+.file-list div { padding: 7px 0; border-bottom: 1px dashed var(--line); }
+.file-list dt { font-weight: 850; font-size: 13px; }
+.file-list dd { margin: 0; overflow-wrap: anywhere; }
+
+.guide-board {
+  padding: clamp(19px, 3vw, 35px);
+  background: repeating-linear-gradient(0deg, #2341c51a 0 1px, transparent 1px 26px), var(--mint);
+  border: 1.5px solid var(--blue); border-radius: 16px 20px 15px 19px / 18px 13px 22px 14px;
+  box-shadow: 4px 5px 0 var(--blue);
+}
+.steps { list-style: none; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 15px; counter-reset: step; }
+.steps li {
+  counter-increment: step; display: grid; grid-template-columns: 35px 1fr; align-items: start; gap: 4px 12px;
+  padding: 14px; background: var(--white); border: 1px solid var(--line); border-radius: 10px 9px 11px 7px;
+}
+.steps li::before {
+  content: counter(step); grid-row: span 2; display: grid; place-items: center; height: 32px;
+  border: 2px solid var(--white); border-radius: 47% 52% 48% 55%; box-shadow: 2px 3px 0 var(--shadow);
+  background: var(--yellow); color: var(--ink); font: italic 900 17px/1 var(--mono); transform: rotate(-8deg);
+}
+.steps h3 { font-size: 18px; font-weight: 900; padding-top: 3px; }
+.steps p { font-size: 14px; color: var(--muted); }
+
+.download {
+  display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: clamp(25px, 5vw, 60px);
+  padding: clamp(23px, 5vw, 58px);
+  background: repeating-linear-gradient(135deg, #ffffff20 0 6px, transparent 6px 15px), var(--yellow);
+  border: 2px solid var(--blue); border-radius: 23px 17px 21px 18px / 17px 21px 19px 25px;
+  box-shadow: 5px 6px 0 var(--blue);
+}
+.download-copy p { margin-top: 12px; text-wrap: pretty; }
+.download-actions { justify-content: flex-start; }
+.release-meta { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; font: 13px/1.6 var(--mono); }
+.release-meta strong { font-size: 15px; }
+.mirror {
+  background: var(--white); padding: clamp(16px, 3vw, 26px); border: 1.5px solid var(--blue);
+  border-radius: 13px 19px 14px 17px; box-shadow: 3px 4px 0 var(--shadow); transform: rotate(1deg);
+}
+.mirror h3 { font-size: 22px; font-weight: 900; }
+.mirror > p { margin-top: 8px; font-size: 14px; }
+.mirror-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 16px; }
+.extract { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; font-size: 13px; }
+.extract code { padding: 1px 5px; background: var(--lilac); border-radius: 4px; font: 800 14px/1.6 var(--mono); }
+.copy {
+  min-height: 35px; padding: 3px 8px; background: transparent; border: 1px dashed var(--line); border-radius: 6px;
+  font-weight: 800; transition: background .2s;
+}
+.copy:hover, .copy[data-copied] { background: var(--mint); }
+
+.faq { display: grid; grid-template-columns: 1fr 1.65fr; gap: 22px; align-items: start; }
+.faq .section-head { margin-bottom: 0; }
+.faq-list { border-top: 1px solid var(--line); }
+.faq details { border-bottom: 1px solid var(--line); }
+.faq summary {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; list-style: none;
+  min-height: 57px; padding: 12px 2px; cursor: pointer; font-weight: 800;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; flex: none; width: 1em; text-align: center; color: var(--blue); font: 800 24px/1 var(--mono); }
+.faq details[open] summary::after { content: "−"; }
+.faq summary:hover { color: var(--blue); }
+.faq details p { padding: 0 25px 14px 2px; color: var(--muted); font-size: 14px; overflow-wrap: anywhere; }
+.faq details a { text-underline-offset: 3px; }
+
+footer { margin-top: clamp(60px, 9vw, 105px); padding: 24px 0 35px; border-top: 1px solid var(--line); }
+.footer-inner { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px 20px; }
+.footer-inner p { color: var(--muted); font-size: 13px; }
+.footer-links { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 13px; font-weight: 750; }
+.footer-links a { text-underline-offset: 4px; }
+
+.awaiting-reveal { opacity: 0; translate: 0 20px; }
+.reveal { transition: opacity .45s var(--ease) var(--enter-delay, 0ms), translate .45s var(--ease) var(--enter-delay, 0ms); }
+.reveal:focus-within { opacity: 1; translate: 0 0; }
+@keyframes rise { from { opacity: 0; translate: 0 16px; } to { opacity: 1; translate: 0 0; } }
+@keyframes swap { from { opacity: .15; translate: 0 5px; } }
+@keyframes underline { from { scale: 0 1; } to { scale: 1 1; } }
+@keyframes ticket-in {
+  from { opacity: 0; transform: translateY(16px) rotate(-24deg) scale(.78); }
+  68% { transform: translateY(-4px) rotate(4deg) scale(1.05); }
+}
+@keyframes mascot-in {
+  from { opacity: 0; transform: translateY(20px) rotate(24deg) scale(.8); }
+  63% { transform: translateY(-7px) rotate(-5deg) scale(1.035); }
+}
+@keyframes mascot-bob { 45% { translate: 0 -7px; rotate: -3deg; } }
+@keyframes sparkle { 45% { rotate: 20deg; scale: 1.22; } }
+
+@media (max-width: 840px) {
+  .hero-actions { gap: 12px; }
+  .hero-actions .sticker { padding-inline: 15px; min-height: 49px; font-size: 14px; }
+  .tour-scene { grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); }
+}
+@media (max-width: 650px) {
+  html { scroll-padding-top: 100px; }
+  .wrap { width: calc(100% - 32px); }
+  .masthead-inner { min-height: auto; grid-template-columns: 1fr auto; gap: 3px 10px; padding-block: 9px 5px; }
+  .masthead .brand { font-size: 21px; }
+  .masthead .brand img { width: 27px; height: 27px; }
+  .masthead .sticker { grid-column: 2; grid-row: 1; }
+  .nav-links { grid-row: 2; grid-column: 1 / -1; justify-content: center; gap: clamp(12px, 4vw, 24px); }
+  .nav-links a { font-size: 13px; padding-block: 5px; }
+  .hero { padding-top: 43px; }
+  .hero-layout { grid-template-columns: 1fr; gap: 22px; text-align: center; }
+  .hero h1 { margin: 22px auto 0; transform-origin: center; }
+  .hero h1 span { margin-inline: auto; }
+  .hero .intro { margin: 20px auto 0; max-width: 360px; text-wrap: balance; }
+  .intro span { display: inline; }
+  .hero-actions { justify-content: center; margin-top: 19px; }
+  .hero-art { max-width: 280px; }
+  .art-stage { aspect-ratio: 1.4; }
+  .art-halo { inset: 5% 14% 6%; }
+  .tomato { top: 10%; width: 47%; }
+  .preview { margin-top: 23px; padding: 11px 11px 13px; }
+  .preview-head { flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .preview-title { font-size: 14px; }
+  .preview-tabs { gap: 3px; }
+  .preview-tabs label span { padding-inline: 7px; min-height: 35px; }
+  .demo { grid-template-columns: minmax(0, 1fr) 12px minmax(0, 1fr); gap: 4px; }
+  .demo-arrow { font-size: 15px; }
+  .demo-card figcaption { padding-inline: 5px; }
+  .demo-card pre { padding-inline: 5px; }
+  .tour-scene, .feature-grid, .support, .steps, .download, .faq { grid-template-columns: 1fr; }
+  .tour-tabs { gap: 6px; }
+  .tour-tabs label span { padding-inline: 7px; min-height: 39px; font-size: 12px; }
+  .feature:nth-child(even) { --enter-delay: 0ms; }
+  .steps { gap: 9px; }
+  .download-copy h2 { text-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .awaiting-reveal { opacity: 1; translate: none; }
 }
 </style>
-<noscript><style>
-  .reveal{opacity:1;translate:0 0}
-  @media(max-width:760px){.nav-links{display:flex;position:static;flex-direction:row;flex-wrap:wrap;border:0;padding:0;box-shadow:none}.menu-btn{display:none}}
-</style></noscript>
 </head>
 <body>
-<a class="skip" href="#main">跳到主要内容</a>
-
-<header class="nav">
-  <div class="wrap nav-inner">
+<a class="skip" href="#main">跳到正文</a>
+<header class="masthead">
+  <div class="wrap masthead-inner">
     <a class="brand" href="#top" aria-label="CCToolbox 首页">
-      <img class="brand-mark" src="img/app-icon.png" alt="" aria-hidden="true">
-      <span>CCToolbox</span>
+      <img src="img/app-icon.png" alt="" width="32" height="32">
+      <span>CC<span>Toolbox</span></span>
     </a>
-    <nav class="nav-links" id="navLinks" aria-label="主导航">
-      <a href="#why">为什么</a>
-      <a href="#features">功能</a>
-      <a href="#guide">上手</a>
-      <a href="#limits">边界</a>
-      <a href="#faq">问答</a>
-      <a href="#download">下载</a>
+    <nav class="nav-links" aria-label="主导航">
+      <a href="#tour">界面实拍</a>
+      <a href="#features">工具集</a>
+      <a href="#guide">上手流程</a>
+      <a href="#faq">常见问题</a>
     </nav>
-    <div class="nav-actions">
-      <a class="btn btn-sm" href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub 源码</a>
-      <button class="menu-btn" id="menuBtn" aria-expanded="false" aria-controls="navLinks" aria-label="展开导航">☰</button>
-    </div>
+    <a class="sticker sticker--white sticker--small" href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
   </div>
 </header>
 
 <main id="main">
-  <section class="hero" id="top">
-    <div class="wrap hero-inner">
+  <section class="hero wrap" id="top" aria-labelledby="hero-title">
+    <div class="hero-layout">
       <div class="hero-copy">
-        <span class="badge">Windows 桌面工具 · 本地运行</span>
-        <h1>实施现场的<span class="mark">数据活儿</span>，<br>一个窗口搞定</h1>
-        <p class="lead">CC 实施工具箱（CCToolbox）把表格转 SQL、数据校验、差异对比、JSON 处理和发票打印放进同一个窗口。<span class="hl">不连数据库，不上传文件</span>，核心处理全部在本机完成。</p>
-        <div class="cta">
-          <a class="btn" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">下载最新版</a>
-          <a class="btn btn-teal" href="#guide">三分钟上手</a>
+        <p class="tape">CC 实施工具箱</p>
+        <h1 id="hero-title"><span>数据理顺，</span><span>交付就绪。</span></h1>
+        <p class="intro" id="why"><span>把业务表格变成 SQL，导入前查错，交付前核对差异。</span><span>这些活儿都能在一个 Windows 应用里完成。</span></p>
+        <div class="hero-actions">
+          <a class="sticker primary" href="#download"><span aria-hidden="true">↓</span> 下载 Windows 版</a>
+          <a class="sticker sticker--white" href="#tour">看看软件长什么样 <span aria-hidden="true">↘</span></a>
         </div>
-        <p class="hero-meta">Windows 10 19041+ · x64 · 免安装 · 约 70 MB 单文件 · by 悲伤番茄</p>
-        <p class="hero-meta hero-mirror">GitHub 下载太慢？<a href="#download">使用国内备用下载（蓝奏云）</a></p>
+        <p class="platform">Windows 10 / 11 x64 · 免安装 <a href="#mirror">蓝奏云备用下载</a></p>
       </div>
-      <div class="hero-art">
-        <svg class="circle-mark" viewBox="0 0 180 64" aria-hidden="true"><path d="M12 34 C10 12 168 6 174 30 C180 54 60 62 16 48"/></svg>
-        <div class="polaroid tape">
-          <img src="img/app-icon.png" alt="CCToolbox 程序图标：一个流泪的番茄">
-          <div class="cap">CCToolbox · by 悲伤番茄</div>
+      <figure class="hero-art">
+        <div class="art-stage">
+          <div class="art-halo" aria-hidden="true"></div>
+          <span class="art-spark art-spark--top" aria-hidden="true">✦</span>
+          <span class="art-spark art-spark--side" aria-hidden="true">✳</span>
+          <div class="tomato" aria-hidden="true"><img src="img/app-icon.png" alt="" width="232" height="232"></div>
+          <a class="art-ticket art-ticket--csv" href="#workbench" data-demo="demo-sql" aria-label="试试表格转 SQL"><span class="graphic-table" aria-hidden="true"></span>.CSV</a>
+          <a class="art-ticket art-ticket--check" href="#workbench" data-demo="demo-check" aria-label="试试数据校验"><span aria-hidden="true">✓</span> 校验</a>
+          <a class="art-ticket art-ticket--diff" href="#workbench" data-demo="demo-diff" aria-label="试试差异对比"><span aria-hidden="true">{±}</span> JSON</a>
         </div>
-        <svg class="star" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 C22 14 26 18 38 20 C26 22 22 26 20 38 C18 26 14 22 2 20 C14 18 18 14 20 2 Z"/></svg>
-        <svg class="hero-arrow" viewBox="0 0 92 62" aria-hidden="true"><path d="M4 52 C24 56 48 40 68 18 M68 18 L54 20 M68 18 L66 32"/></svg>
-        <span class="scribble">核心功能离线可用</span>
+        <figcaption>点一张贴纸，试试对应的功能 <span aria-hidden="true">↘</span></figcaption>
+      </figure>
+    </div>
+
+    <fieldset class="preview" id="workbench">
+      <legend class="visually-hidden">切换功能演示</legend>
+      <div class="preview-head">
+        <span class="preview-title">功能演示</span>
+        <div class="choices preview-tabs">
+          <label><input class="visually-hidden" type="radio" id="demo-sql" name="demo" checked><span>表格转 SQL</span></label>
+          <label><input class="visually-hidden" type="radio" id="demo-check" name="demo"><span>数据校验</span></label>
+          <label><input class="visually-hidden" type="radio" id="demo-diff" name="demo"><span>差异对比</span></label>
+        </div>
+      </div>
+      <div class="demo demo--sql">
+        <figure class="demo-card">
+          <figcaption>源表格</figcaption>
+          <pre><code>sku      qty
+A-104     12
+A-205      8</code></pre>
+        </figure>
+        <span class="demo-arrow" aria-hidden="true">→</span>
+        <figure class="demo-card">
+          <figcaption>生成的 SQL</figcaption>
+          <pre><code><strong>INSERT INTO</strong> stock
+(sku, qty) <strong>VALUES</strong>
+('A-104', '12'),
+('A-205', '8');</code></pre>
+        </figure>
+      </div>
+      <div class="demo demo--check">
+        <figure class="demo-card">
+          <figcaption>表结构</figcaption>
+          <pre><code>sku  varchar(12)
+qty  <strong>integer</strong> NOT NULL</code></pre>
+        </figure>
+        <span class="demo-arrow" aria-hidden="true">→</span>
+        <figure class="demo-card">
+          <figcaption>校验发现</figcaption>
+          <pre><code>第 7 行 · qty
+<span class="changed">实际值：待定</span>
+期望整数</code></pre>
+        </figure>
+      </div>
+      <div class="demo demo--diff">
+        <figure class="demo-card">
+          <figcaption>修改前</figcaption>
+          <pre><code>{
+  "theme": "<span class="changed">light</span>"
+}</code></pre>
+        </figure>
+        <span class="demo-arrow" aria-hidden="true">→</span>
+        <figure class="demo-card">
+          <figcaption>修改后</figcaption>
+          <pre><code>{
+  "theme": "<strong>dark</strong>"
+}</code></pre>
+        </figure>
+      </div>
+    </fieldset>
+  </section>
+
+  <section class="section wrap" id="tour" aria-labelledby="tour-title">
+    <div class="section-head reveal">
+      <h2 id="tour-title">三个现场任务，跟着做一遍</h2>
+      <p>切换任务看软件实拍，了解从哪里开始、处理完能带走什么。</p>
+    </div>
+    <fieldset class="tour-board reveal">
+      <legend class="visually-hidden">选择要查看的任务</legend>
+      <div class="choices tour-tabs">
+        <label><input class="visually-hidden" type="radio" name="tour" id="tour-sql" checked><span>准备导入脚本</span></label>
+        <label><input class="visually-hidden" type="radio" name="tour" id="tour-check"><span>排查入库问题</span></label>
+        <label><input class="visually-hidden" type="radio" name="tour" id="tour-diff"><span>核对接口变更</span></label>
+      </div>
+      <article class="tour-scene tour-scene--sql">
+        <a class="tour-shot" href="img/previews/table-sql.webp" target="_blank" rel="noopener" aria-label="打开表格转 SQL 界面大图">
+          <img src="img/previews/table-sql.webp" alt="临时数据建表界面的数据库配置与 SQL 输出区" width="1240" height="729" loading="lazy" decoding="async">
+          <span>查看实拍大图 ↗</span>
+        </a>
+        <div class="tour-story">
+          <h3>业务刚发来一份表</h3>
+          <p>例如拿到一份库存清单，需要整理成能交给数据库同事执行的导入脚本。</p>
+          <ol>
+            <li>在「临时数据建表」导入文件，检查表头与数据。</li>
+            <li>选定数据库类型和表名，按需生成临时表或批量 INSERT。</li>
+            <li>预览 SQL，再复制或保存脚本。</li>
+          </ol>
+          <p class="tour-output"><strong>可交付</strong> · 建表与插入脚本，也可导出 CSV 或 JSON。</p>
+        </div>
+      </article>
+      <article class="tour-scene tour-scene--check">
+        <a class="tour-shot" href="img/previews/validation.webp" target="_blank" rel="noopener" aria-label="打开数据校验界面大图">
+          <img src="img/previews/validation.webp" alt="数据验证排查中的校验结果、错误统计与 Excel 报告入口" width="1240" height="602" loading="lazy" decoding="async">
+          <span>查看实拍大图 ↗</span>
+        </a>
+        <div class="tour-story">
+          <h3>入库报错，先找是哪一行</h3>
+          <p>例如数量列本应是整数，业务表格里却混入了「待定」。</p>
+          <ol>
+            <li>提供 PostgreSQL 或 SQL Server 的表结构，再导入待验数据。</li>
+            <li>确认源字段与目标字段的映射，运行逐行校验。</li>
+            <li>按错误类型筛选明细，从字段和实际值回查原始记录。</li>
+          </ol>
+          <p class="tour-output"><strong>可交付</strong> · 含错误明细的 Excel 报告，方便分派修正。</p>
+        </div>
+      </article>
+      <article class="tour-scene tour-scene--diff">
+        <a class="tour-shot" href="img/previews/json-diff.webp" target="_blank" rel="noopener" aria-label="打开 JSON 对比界面大图">
+          <img src="img/previews/json-diff.webp" alt="JSON 对比界面的双栏编辑器、差异导航与字段变更明细" width="1240" height="736" loading="lazy" decoding="async">
+          <span>查看实拍大图 ↗</span>
+        </a>
+        <div class="tour-story">
+          <h3>两个版本，具体改了哪里</h3>
+          <p>适合复核两次接口响应或两份 JSON 配置，差异用字段路径定位。</p>
+          <ol>
+            <li>将原始内容和修改后的内容分别放入左右编辑区。</li>
+            <li>开始对比，查看新增、删除、值修改和类型变化。</li>
+            <li>点差异列表中的一项，跳回源文对应的行。</li>
+          </ol>
+          <p class="tour-output"><strong>可交付</strong> · 供开发与实施一起复核的差异报告。</p>
+        </div>
+      </article>
+    </fieldset>
+  </section>
+
+  <section class="section wrap" id="features" aria-labelledby="features-title">
+    <div class="section-head reveal">
+      <h2 id="features-title">打开工具箱，按任务找工具</h2>
+      <p>这里沿用桌面程序里的功能名称，打开软件就能跟着找。</p>
+    </div>
+    <div class="feature-grid">
+      <article class="feature reveal">
+        <div class="feature-head">
+          <h3>看表、备表、建表</h3>
+          <span class="feature-art graphic-table" aria-hidden="true"></span>
+        </div>
+        <dl>
+          <dt>CSV 文件预览</dt><dd>自动识别编码与分隔符，像看表格一样全表搜索、跳到命中行。</dd>
+          <dt>临时数据建表</dt><dd>导入 Excel、CSV 或 DBF，编辑预览后生成 CREATE TABLE 和 INSERT。</dd>
+          <dt>快速建数据表</dt><dd>粘贴 INSERT 反推字段类型，检查并手动调整，再生成建表语句。</dd>
+        </dl>
+      </article>
+      <article class="feature feature--check reveal">
+        <div class="feature-head">
+          <h3>查错与双份复核</h3>
+          <span class="feature-art" aria-hidden="true">✓</span>
+        </div>
+        <dl>
+          <dt>数据验证排查</dt><dd>根据表结构逐行校验，按行号、主键、字段和实际值定位问题。</dd>
+          <dt>CSV 对比</dt><dd>按行号或复合主键匹配，筛选新增、缺失与变更。入口在「系统参数配置 → 实用小工具」。</dd>
+          <dt>JSON 内容比对</dt><dd>对比嵌套字段，按变化类型筛选，从差异跳到两侧的对应行。</dd>
+        </dl>
+      </article>
+      <article class="feature feature--diff reveal">
+        <div class="feature-head">
+          <h3>看接口、画流程</h3>
+          <span class="feature-art" aria-hidden="true">{…}</span>
+        </div>
+        <dl>
+          <dt>JSON 数据解析</dt><dd>把 JSON 格式化或压缩，在嵌套表格里查找、编辑字段，再回写文本。</dd>
+          <dt>在线绘图工具</dt><dd>在内嵌 Excalidraw 画流程，保存可编辑文件，或导出 PNG、SVG。</dd>
+        </dl>
+      </article>
+      <article class="feature feature--daily reveal">
+        <div class="feature-head">
+          <h3>处理办公杂事</h3>
+          <span class="feature-art" aria-hidden="true"><span class="paper-lines"></span></span>
+        </div>
+        <dl>
+          <dt>发票打印操作</dt><dd>导入 PDF 或图片，选择每页张数、方向和边距，检查预览后打印。</dd>
+          <dt>随手记</dt><dd>点右下角悬浮球打开独立便签，关窗时自动保存。</dd>
+          <dt>系统参数配置</dt><dd>设置常用数据库、默认表名、批量行数、导出目录和检查更新方式。</dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap" id="compatibility" aria-labelledby="compatibility-title">
+    <div class="section-head reveal">
+      <h2 id="compatibility-title">先确认库型和文件格式</h2>
+      <p>脚本生成与入库校验各有支持范围，选好目标数据库再开始。</p>
+    </div>
+    <div class="support">
+      <article class="support-card reveal">
+        <h3>数据库</h3>
+        <ul class="db-list">
+          <li><b>PostgreSQL</b><span>生成 SQL · 数据校验</span></li>
+          <li><b>SQL Server</b><span>生成 SQL · 数据校验</span></li>
+          <li><b>MySQL</b><span>生成 SQL</span></li>
+          <li><b>Oracle</b><span>生成 SQL</span></li>
+        </ul>
+        <p>生成时会按库型适配标识符、临时表和批量插入写法。SQL Server 的批量 INSERT 按 1,000 行分组。</p>
+      </article>
+      <article class="support-card support-card--files reveal">
+        <h3>输入文件</h3>
+        <dl class="file-list">
+          <div><dt>导入并生成脚本</dt><dd>XLSX、XLS、CSV、DBF</dd></div>
+          <div><dt>预览与对比分隔文本</dt><dd>CSV、TSV、TXT、DBF、BDF</dd></div>
+          <div><dt>发票预览与打印</dt><dd>PDF、JPG、PNG、BMP、TIF</dd></div>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="section wrap" id="guide" aria-labelledby="guide-title">
+    <div class="guide-board reveal">
+      <div class="section-head"><h2 id="guide-title">用一份表格试试</h2><p>准备几行样例数据，就能走通第一次导出。</p></div>
+      <ol class="steps">
+        <li><h3>打开工具箱</h3><p>把 CCToolbox.exe 放在有写入权限的目录，双击运行。</p></li>
+        <li><h3>确认字段和数据</h3><p>进入「临时数据建表」，导入表格，在预览中检查列名与内容。</p></li>
+        <li><h3>生成并保存脚本</h3><p>选择数据库类型和目标表名，生成 SQL，再交给数据库客户端执行。</p></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="section wrap download reveal" id="download" aria-labelledby="download-title">
+    <div class="download-copy">
+      <h2 id="download-title">下载到本机，<br>双击开工。</h2>
+      <p>适用于 x64 版 Windows 10（2004 及以上）和 Windows 11。单个 EXE 已包含 .NET 运行环境。</p>
+      <div class="download-actions">
+        <a class="sticker" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">前往 GitHub Releases <span aria-hidden="true">↗</span></a>
+      </div>
+      <p class="release-meta"><span>构建快照</span><strong id="release-version">v2.4.1</strong><time>2026-11-21</time><span>70.0 MB</span></p>
+    </div>
+    <div class="mirror" id="mirror">
+      <h3>蓝奏云备用下载</h3>
+      <p>镜像可能晚于 GitHub 更新。选择文件前，可以先在 Releases 核对版本。</p>
+      <div class="mirror-actions">
+        <a class="sticker sticker--white sticker--small" href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener">打开蓝奏云 <span aria-hidden="true">↗</span></a>
+        <div class="extract">
+          <span>提取码</span><code id="extract-code">dvqy</code>
+          <button class="copy" type="button" id="copy-code" aria-describedby="extract-code" hidden>复制</button>
+          <span class="visually-hidden" id="copy-status" role="status"></span>
+        </div>
       </div>
     </div>
   </section>
 
-  <section class="stats wrap" aria-label="产品速览">
-    <div class="grid-4">
-      <div class="stat reveal"><b>11</b><span>个功能页面</span></div>
-      <div class="stat reveal"><b>4</b><span>种数据库可生成 SQL</span></div>
-      <div class="stat reveal"><b>0</b><span>次业务数据上传</span></div>
-      <div class="stat reveal"><b>1</b><span>个 exe，免安装</span></div>
-    </div>
-    <p class="stat-note">口径说明：源码含 11 个 Page；SQL 生成覆盖 PostgreSQL / SQL Server / MySQL / Oracle；「0 上传」仅指核心文件处理。<br class="line-br">画板需联网加载 Excalidraw，检查更新需读公开清单（可关闭）；发布产物是单个自包含 exe，约 70 MB。</p>
-  </section>
-
-  <section class="section wrap" id="why">
-    <div class="sec-head reveal">
-      <span class="kicker">01 / 为什么</span>
-      <h2>少一些重复操作，<span class="hl">多一些清晰结果</span></h2>
-      <p>费时间的往往不是「不会做」，而是同一件事反复确认。<br class="line-br">把这些高频环节收进一个窗口，每一步都能拿出结果来复核。</p>
-    </div>
-    <div class="grid-3">
-      <article class="note tilt-l reveal">
-        <h3>表格转 SQL 不再手工拼</h3>
-        <p>拖进 Excel / CSV / DBF，边看边改。<br class="line-br">建表与 INSERT 一次生成。<br class="line-br">标识符、临时表、批量语法自动适配。</p>
-      </article>
-      <article class="note reveal">
-        <h3>导入报错能定位到行</h3>
-        <p>按表结构建好映射，再逐行校验。<br class="line-br">问题落到行号、字段、实际值，<br class="line-br">报告里还带主键定位，方便回查。</p>
-      </article>
-      <article class="note tilt-r reveal">
-        <h3>前后差异一眼看全</h3>
-        <p>CSV 按行号或复合主键，JSON 按结构。<br class="line-br">增、删、改、类型变化，分开列清楚。<br class="line-br">筛选完，直接导出。</p>
-      </article>
-      <article class="note teal reveal">
-        <h3>深层 JSON 不靠肉眼</h3>
-        <p>格式化、压缩、语法校验都在。<br class="line-br">嵌套表格能折叠，改完就回写。<br class="line-br">多层对象也能连着上下文看。</p>
-      </article>
-      <article class="note red reveal">
-        <h3>零散小事一个入口</h3>
-        <p>发票打印、在线画板、随手记，<br class="line-br">和系统参数配置放在同一套导航里。<br class="line-br">少切几个窗口，少配几次。</p>
-      </article>
-      <article class="note reveal">
-        <h3>结果能带走</h3>
-        <p>SQL 可复制，也能存成 <span class="tag">.sql</span>。<br class="line-br">数据、报告导出 CSV / JSON / Excel。<br class="line-br">统一 UTF-8 BOM，Excel 打开不乱码。</p>
-      </article>
-    </div>
-  </section>
-
-  <section class="section wrap" id="features">
-    <div class="sec-head reveal">
-      <span class="kicker">02 / 功能</span>
-      <h2>四组工具，<span class="mark">都在这一个窗口</span></h2>
-      <p>导航按用途分四组，数据、开发、办公、系统各归各。<br class="line-br">CSV 对比放在「系统参数配置」的实用小工具里。</p>
-    </div>
-    <div class="grid-2">
-      <article class="note reveal">
-        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><rect class="fill" x="4" y="6" width="26" height="30"/><path d="M4 16h26M4 26h26M15 6v30M33 22h7M37 18l4 4-4 4"/></svg>
-        <h3>数据工具</h3>
-        <ul class="feature-list">
-          <li>首页概览：快捷入口与构建信息</li>
-          <li>临时数据建表：表格转建表 + INSERT</li>
-          <li>CSV 文件预览：自动认编码，全表搜得到</li>
-          <li>快速建数据表：贴一段 INSERT，反推 CREATE TABLE</li>
-          <li>数据验证排查：四步向导，三 Sheet 报告</li>
-          <li>CSV 对比：按行号，或按复合主键</li>
-        </ul>
-      </article>
-      <article class="note reveal">
-        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M16 6c-6 0-6 7-6 10s0 6-4 6c6 0 6 6 6 10s0 6 6 6M28 6c6 0 6 7 6 10s0 6 4 6c-6 0-6 6-6 10s0 6-6 6"/></svg>
-        <h3>开发工具</h3>
-        <ul class="feature-list">
-          <li>JSON 数据解析：双栏编辑、嵌套表格、双搜索</li>
-          <li>JSON 内容比对：差异列表，两侧行号定位</li>
-          <li>在线绘图：内嵌 Excalidraw，导出 PNG / SVG</li>
-        </ul>
-        <p style="margin-top:16px;font-size:14px">画板要联网加载 Excalidraw，也依赖 WebView2 Runtime。</p>
-      </article>
-      <article class="note teal reveal">
-        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><path d="M9 5h21l6 6v28H9zM30 5v7h6M14 20h17M14 27h17M14 34h10"/></svg>
-        <h3>办公工具</h3>
-        <ul class="feature-list">
-          <li>发票打印：PDF / 图片预览、排版、模板、打印</li>
-          <li>每页 1 / 2 / 4 张，方向、边距、裁剪线都能调</li>
-          <li>OFD 目前只能登记，还不能渲染</li>
-        </ul>
-      </article>
-      <article class="note red reveal">
-        <svg class="feature-icon" viewBox="0 0 44 44" aria-hidden="true"><circle cx="22" cy="22" r="15"/><path d="M22 7v6M22 31v6M7 22h6M31 22h6M22 17v10M17 22h10"/></svg>
-        <h3>系统与顺手的小东西</h3>
-        <ul class="feature-list">
-          <li>系统参数配置：默认库、表名、批量行数、导出路径</li>
-          <li>随手记：右下角悬浮球，关掉就自动保存</li>
-          <li>浅色 / 深色主题字典（暂无切换入口）</li>
-        </ul>
-      </article>
-    </div>
-
-    <div class="matrix-wrap reveal">
-      <table class="matrix">
-        <thead><tr><th>能力</th><th>PostgreSQL</th><th>SQL Server</th><th>MySQL</th><th>Oracle</th></tr></thead>
-        <tbody>
-          <tr><td>建表 / INSERT 脚本生成</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>快速建数据表（CREATE TABLE）</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-          <tr><td>数据验证排查</td><td class="yes">✓</td><td class="yes">✓</td><td class="no">—</td><td class="no">—</td></tr>
-        </tbody>
-      </table>
-      <p class="matrix-note">「—」表示当前版本不支持。校验只覆盖已建立有效映射的字段，规则细节见仓库内 <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/data-validation-rules.md" target="_blank" rel="noopener" style="border-bottom:2px wavy var(--red)">data-validation-rules.md</a>。</p>
-    </div>
-  </section>
-
-  <section class="section wrap" id="guide">
-    <div class="sec-head reveal">
-      <span class="kicker">03 / 上手</span>
-      <h2>放进数据，<span class="hl">带走结果</span></h2>
-      <p>不用装运行环境，不用账号，也不用先建工程。<br class="line-br">双击 exe，挑一个页面，把文件或文本放进去就好。</p>
-    </div>
-    <div class="steps">
-      <div class="step reveal"><span class="num">1</span><h3>放进数据</h3><p>拖入 Excel / CSV / DBF，<br class="line-br">或粘贴 INSERT、JSON、DDL。<br class="line-br">解析与认编码都在本机完成。</p></div>
-      <div class="step reveal"><span class="num">2</span><h3>看一眼结果</h3><p>表格里直接改，选好库和表。<br class="line-br">建表与 INSERT 一次生成。<br class="line-br">复制走，或存成 .sql。</p></div>
-      <div class="step reveal"><span class="num">3</span><h3>核一遍问题</h3><p>确认映射后逐行校验，<br class="line-br">或拿两份 CSV / JSON 比差异。<br class="line-br">问题落到行号、字段、实际值。</p></div>
-      <div class="step reveal"><span class="num">4</span><h3>带走成果</h3><p>导出 SQL、CSV、JSON、Excel，<br class="line-br">拿到数据库客户端执行，<br class="line-br">或直接交给同事复核。</p></div>
-    </div>
-  </section>
-
-  <section class="section wrap" id="limits">
-    <div class="sec-head reveal">
-      <span class="kicker">04 / 边界</span>
-      <h2>能做什么，<span class="mark">不能做什么</span>，都写清楚</h2>
-      <p>以下都是当前版本真实存在的限制。<br class="line-br">先写清楚，省得踩了坑才发现做不到。</p>
-    </div>
-    <div class="grid-3">
-      <div class="limit reveal"><b>不直连数据库</b>SQL 只生成，不执行。<br class="line-br">校验也只看文本和文件，<br class="line-br">脚本拿到数据库客户端里跑。</div>
-      <div class="limit reveal"><b>校验范围有限</b>只支持 SQL Server / PostgreSQL。<br class="line-br">校验类型和格式，不管业务语义；<br class="line-br">跨字段、外键、JSON Schema 也不查。</div>
-      <div class="limit reveal"><b>建表列全是字符串</b>「临时数据建表」的列全是字符串，<br class="line-br">靠目标库隐式转换。<br class="line-br">要精确类型，请用「快速建数据表」。</div>
-      <div class="limit reveal"><b>OFD 尚未渲染</b>只能选来登记，预览和打印是空的。<br class="line-br">请用 PDF 或图片。</div>
-      <div class="limit reveal"><b>画板依赖外网</b>画板经 WebView2 加载 Excalidraw。<br class="line-br">需要 Runtime，也要联网。</div>
-      <div class="limit reveal"><b>配置写在程序目录</b><span class="tag">settings.json</span> 等文件挨着 exe。<br class="line-br">放进只读目录，会保存失败。</div>
-      <div class="limit reveal"><b>部分状态不持久</b>CSV 对比的页面状态只在内存里。<br class="line-br">退出程序就没了。</div>
-      <div class="limit reveal"><b>大文件有阈值</b>10 万行以上，生成前先确认。<br class="line-br">SQL 超 5000 行只看前 1000 行，<br class="line-br">复制保存仍完整；明细上限 1 万条。</div>
-      <div class="limit reveal"><b>exe 未签名</b>SmartScreen 或杀软可能误报。<br class="line-br">可核对 Releases 校验信息，<br class="line-br">或按源码自行构建。</div>
-    </div>
-    <p class="limits-foot">完整技术说明见仓库内「程序说明」；校验规则、在线更新方案均以 Markdown 形式随源码提供。</p>
-  </section>
-
-  <section class="section wrap" id="faq">
-    <div class="sec-head reveal">
-      <span class="kicker">05 / 问答</span>
-      <h2>你可能想问的</h2>
-    </div>
-    <div class="faq reveal">
-      <details><summary>需要安装 .NET 或 VC++ 运行库吗？</summary><p>不需要。发布包是自包含单文件 exe，依赖已打进程序；只有从源码调试运行才需要 .NET 10 SDK。在线画板另需系统已安装 WebView2 Runtime。</p></details>
-      <details><summary>会上传或收集我的数据吗？</summary><p>核心功能（表格转换、CSV 预览与对比、JSON 处理、数据校验、发票打印）全部在本机内存完成，不连数据库、不上传文件。联网点只有两个：「在线绘图工具」通过 WebView2 加载 excalidraw.com，以及「检查更新」读取公开的 <span class="tag">latest.json</span> 清单（不上传任何数据，可在设置页关闭）。</p></details>
-      <details><summary>支持哪些数据库？</summary><p>建表与 INSERT 脚本生成支持 PostgreSQL、SQL Server、MySQL、Oracle 四种；「数据验证排查」目前只支持 SQL Server 与 PostgreSQL。</p></details>
-      <details><summary>支持哪些文件格式？</summary><p>表格导入支持 <span class="tag">.xlsx</span> <span class="tag">.xls</span> <span class="tag">.csv</span> <span class="tag">.dbf</span>；分隔文本预览与对比支持 <span class="tag">.csv</span> <span class="tag">.tsv</span> <span class="tag">.txt</span> <span class="tag">.dbf</span> <span class="tag">.bdf</span>；发票支持 PDF 与 JPG / PNG / BMP / TIF，OFD 除外。</p></details>
-      <details><summary>配置文件在哪里？换电脑怎么办？</summary><p><span class="tag">settings.json</span>、<span class="tag">invoice_templates.json</span>、<span class="tag">invoice_print_history.json</span> 写在 exe 同目录；随手记在 <span class="tag-y tag">%LOCALAPPDATA%\CCToolbox\quick-notes.txt</span>。换机时连同这几个文件一起拷贝即可。</p></details>
-      <details><summary>杀毒软件或 SmartScreen 报毒怎么办？</summary><p>当前 exe 未做数字签名，加上需要读写文件与操作剪贴板，容易被启发式规则误判。可以核对 Releases 页面的校验信息、把文件加入信任，或直接按仓库 README 的命令从源码构建。</p></details>
-      <details><summary>怎么检查更新？程序会自动升级吗？</summary><p>到「系统参数配置 → 软件更新」点「立即检查」；程序启动时也会静默检查一次（可关闭）。发现新版本后只提示并打开 GitHub Releases 下载页，<b>不会自动下载或替换文件</b>。无公网时可在设置里点「选择本地清单」，或把更新源改成共享目录中的 <span class="tag">latest.json</span>。</p></details>
-      <details><summary>画板打不开？</summary><p>请确认系统已安装 WebView2 Runtime 且能访问 excalidraw.com。其余核心功能离线可用；除画板外只有检查更新会联网，且可关闭。</p></details>
-      <details><summary>GitHub 下载太慢或打不开怎么办？</summary><p>用「下载」区的国内备用地址（蓝奏云）：<a href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener" style="border-bottom:2px wavy var(--red)">打开国内下载</a>，页面提示输入提取码时填 <span class="tag tag-y">dvqy</span>，下载卡上也有一键复制按钮。镜像由第三方网盘托管，版本可能晚于 Releases 同步；想确认是否为最新版，请对照 GitHub Releases 的版本号。</p></details>
-    </div>
-  </section>
-
-  <section class="section wrap" id="download">
-    <div class="sec-head reveal">
-      <span class="kicker">06 / 下载</span>
-      <h2>拿走这一个 <span class="hl">exe</span> 就行</h2>
-      <p>没有安装向导、没有账号、没有试用版。下载后放到当前用户可写的目录，双击运行。</p>
-    </div>
-    <div class="dl-grid">
-      <article class="note dl-card tape tape-right reveal">
-        <span class="pin"></span>
-        <h3>GitHub Releases</h3>
-        <p>官方最新版始终在这里，同时保留历史版本与源码。下载 <span class="tag">CCToolbox.exe</span> 后即可运行。</p>
-        <div class="dl-buttons"><a class="btn" href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">前往下载</a></div>
-        <p class="dl-meta">页面为静态快照：<strong>v2.3.9</strong>（2026-11-13）· CCToolbox.exe · 70.0 MB · Windows 10 / 11 x64。最新版本以 Releases 页面为准。</p>
-      </article>
-      <article class="note teal dl-card reveal">
-        <h3>国内下载 · 蓝奏云</h3>
-        <p>国内网络访问 GitHub 较慢时用这个备用地址，下载 <span class="tag">CCToolbox.exe</span> 后双击即可运行，无需安装。</p>
-        <div class="dl-pw">
-          <span class="pw-label">提取密码</span>
-          <code id="dlPwd">dvqy</code>
-          <button type="button" class="copy-btn" id="copyPwd" aria-label="复制提取密码 dvqy">复制</button>
-        </div>
-        <div class="dl-buttons"><a class="btn btn-teal" href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener">国内下载</a></div>
-        <p class="dl-meta">蓝奏云为第三方网盘镜像，版本更新可能晚于 GitHub；<strong>最新版本以 Releases 为准</strong>。链接失效可到仓库提 Issue。</p>
-      </article>
-      <article class="note red dl-card reveal">
-        <h3>源码与反馈</h3>
-        <p>项目基于 .NET 10 + WPF，源码、技术说明与校验规则文档都在仓库里；遇到问题可以直接提 Issue。</p>
-        <ul class="dl-alt">
-          <li>自己构建需要 .NET 10 SDK</li>
-          <li>发布命令见 README 与「打包命令」备忘</li>
-          <li>核心处理本地完成，无需服务端</li>
-        </ul>
-        <div class="dl-buttons">
-          <a class="btn btn-sm" href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">查看源码</a>
-          <a class="btn btn-sm btn-teal" href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">提交问题</a>
-        </div>
-      </article>
+  <section class="section wrap faq" id="faq" aria-labelledby="faq-title">
+    <div class="section-head reveal"><h2 id="faq-title">常见问题</h2></div>
+    <div class="faq-list reveal">
+      <details id="limits">
+        <summary>SQL 脚本和业务文件会到哪里？</summary>
+        <p>文件处理在本机完成。生成的脚本由你复制或保存，再到数据库客户端执行。在线画板会通过 WebView2 加载 Excalidraw，更新检查读取公开版本清单，可在设置中关闭。</p>
+      </details>
+      <details>
+        <summary>手上的数据该用哪个建表工具？</summary>
+        <p>手上是 Excel、CSV 或 DBF 时，用「临时数据建表」生成建表和插入脚本，列按字符串处理。手上已有 INSERT，或希望自行调整字段类型时，用「快速建数据表」。<a href="#compatibility">查看支持的数据库和格式</a></p>
+      </details>
+      <details>
+        <summary>导入前能查出哪些错误？</summary>
+        <p>规则以目标字段为单位，检查类型、格式和部分结构约束，例如整数格式和必填项。跨字段关系、外键存在性等业务要求需要另外核查。<a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/data-validation-rules.md" target="_blank" rel="noopener">查看完整校验规则 ↗</a></p>
+      </details>
+      <details>
+        <summary>换电脑时怎么带走设置和便签？</summary>
+        <p>把 EXE 同目录下的 <code>settings.json</code>、<code>invoice_templates.json</code> 和 <code>invoice_print_history.json</code> 一起复制过去。便签正文位于 <code>%LOCALAPPDATA%\CCToolbox\quick-notes.txt</code>。</p>
+      </details>
+      <details>
+        <summary>如何手动检查更新？</summary>
+        <p>在「系统参数配置 → 软件更新」选择「立即检查」。发现新版后，程序会提示并提供下载页，你可以自行下载新版 EXE。离线时也可在设置里选择本地更新清单。</p>
+      </details>
+      <details>
+        <summary>在线画板和发票打印各需要什么？</summary>
+        <p>画板需要 WebView2 Runtime 和访问 Excalidraw 的网络。发票预览与打印支持 PDF 和图片，OFD 目前可以登记。</p>
+      </details>
+      <details>
+        <summary>Windows 提示无法验证发布者怎么办？</summary>
+        <p>目前发布的 EXE 未做数字签名。你可以核对 Releases 提供的校验信息，或按 GitHub README 的命令从源码构建。</p>
+      </details>
     </div>
   </section>
 </main>
 
-<footer class="footer">
+<footer>
   <div class="wrap footer-inner">
-    <div>
-      <p class="sign">by 悲伤番茄 · 持续迭代中</p>
-      <p style="font-size:13px;margin-top:6px">© 2026 CCToolbox · 一个本地运行的实施工具箱</p>
-    </div>
-    <div class="footer-links">
-      <a href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/chenmo02/CCToolbox/releases/latest" target="_blank" rel="noopener">Releases</a>
-      <a href="https://wwbhj.lanzouu.com/b0hed08ha" target="_blank" rel="noopener">国内下载</a>
-      <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/程序说明.md" target="_blank" rel="noopener">程序说明</a>
-      <a href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">反馈</a>
-    </div>
+    <p><strong>CC 实施工具箱</strong> · 悲伤番茄</p>
+    <nav class="footer-links" aria-label="相关链接">
+      <a href="https://github.com/chenmo02/CCToolbox" target="_blank" rel="noopener">源码仓库 ↗</a>
+      <a href="https://github.com/chenmo02/CCToolbox/blob/main/docs/程序说明.md" target="_blank" rel="noopener">程序文档 ↗</a>
+      <a href="https://github.com/chenmo02/CCToolbox/issues" target="_blank" rel="noopener">提交反馈 ↗</a>
+    </nav>
   </div>
 </footer>
 
 <script>
-(function(){
-  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  var reveals = document.querySelectorAll('.reveal');
-  if (reduce || !('IntersectionObserver' in window)) {
-    Array.prototype.forEach.call(reveals, function(el){ el.classList.add('on'); });
-  } else {
-    var io = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if (e.isIntersecting) { e.target.classList.add('on'); io.unobserve(e.target); }
-      });
-    }, { threshold: 0.08 });
-    Array.prototype.forEach.call(reveals, function(el){ io.observe(el); });
-
-    var links = Array.prototype.slice.call(document.querySelectorAll('#navLinks a'));
-    var map = {};
-    links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
-    var spy = new IntersectionObserver(function(entries){
-      entries.forEach(function(e){
-        if (!e.isIntersecting) return;
-        links.forEach(function(a){ a.classList.remove('active'); });
-        var a = map[e.target.id];
-        if (a) a.classList.add('active');
-      });
-    }, { rootMargin: '-45% 0px -50% 0px' });
-    Object.keys(map).forEach(function(id){
-      var s = document.getElementById(id);
-      if (s) spy.observe(s);
-    });
-  }
-
-  var menuBtn = document.getElementById('menuBtn');
-  var navLinks = document.getElementById('navLinks');
-  menuBtn.addEventListener('click', function(){
-    var open = navLinks.classList.toggle('open');
-    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
-    menuBtn.setAttribute('aria-label', open ? '收起导航' : '展开导航');
+for (const ticket of document.querySelectorAll('[data-demo]')) {
+  ticket.addEventListener('click', () => {
+    const option = document.getElementById(ticket.dataset.demo);
+    option.checked = true;
+    option.focus({ preventScroll: true });
   });
-  Array.prototype.forEach.call(navLinks.querySelectorAll('a'), function(a){
-    a.addEventListener('click', function(){
-      navLinks.classList.remove('open');
-      menuBtn.setAttribute('aria-expanded', 'false');
-    });
-  });
+}
 
-  var copyBtn = document.getElementById('copyPwd');
-  var pwdEl = document.getElementById('dlPwd');
-  if (copyBtn && pwdEl) {
-    copyBtn.addEventListener('click', function(){
-      var text = pwdEl.textContent.trim();
-      var done = function(){
-        copyBtn.textContent = '已复制';
-        copyBtn.classList.add('done');
-        window.setTimeout(function(){
-          copyBtn.textContent = '复制';
-          copyBtn.classList.remove('done');
-        }, 1800);
-      };
-      var legacy = function(){
-        var ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-        ta.select();
-        var ok = false;
-        try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
-        document.body.removeChild(ta);
-        if (ok) {
-          done();
-        } else {
-          copyBtn.textContent = '请手动复制';
-          window.setTimeout(function(){ copyBtn.textContent = '复制'; }, 1800);
-        }
-      };
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(text).then(done, legacy);
-      } else {
-        legacy();
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if ('IntersectionObserver' in window && !reduceMotion.matches) {
+  const observer = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) {
+        entry.target.classList.remove('awaiting-reveal');
+        observer.unobserve(entry.target);
       }
-    });
+    }
+  });
+  for (const section of document.querySelectorAll('.reveal')) {
+    if (section.getBoundingClientRect().top < window.innerHeight) continue;
+    section.classList.add('awaiting-reveal');
+    observer.observe(section);
   }
-})();
+}
+
+const copyButton = document.getElementById('copy-code');
+const extractCode = document.getElementById('extract-code');
+const copyStatus = document.getElementById('copy-status');
+let resetCopyLabel;
+copyButton.hidden = false;
+copyButton.addEventListener('click', async () => {
+  clearTimeout(resetCopyLabel);
+  try {
+    await navigator.clipboard.writeText(extractCode.textContent.trim());
+    copyButton.textContent = '已复制';
+    copyButton.setAttribute('data-copied', '');
+    copyStatus.textContent = '提取码已复制';
+  } catch {
+    const range = document.createRange();
+    range.selectNodeContents(extractCode);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    copyButton.textContent = '请手动复制';
+    copyButton.removeAttribute('data-copied');
+    copyStatus.textContent = '已选中提取码，请手动复制';
+  }
+  resetCopyLabel = setTimeout(() => {
+    copyButton.textContent = '复制';
+    copyButton.removeAttribute('data-copied');
+    copyStatus.textContent = '';
+  }, 1800);
+});
 </script>
 </body>
 </html>

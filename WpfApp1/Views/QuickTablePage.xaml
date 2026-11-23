@@ -103,10 +103,35 @@
                         <TextBlock Text="支持单表、多条 INSERT 和批量 VALUES" FontSize="12" Foreground="#9CA3AF" HorizontalAlignment="Right"/>
                     </DockPanel>
                     <Grid Margin="0,0,0,14">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/><ColumnDefinition Width="16"/><ColumnDefinition Width="*"/></Grid.ColumnDefinitions>
                         <StackPanel Grid.Column="0"><TextBlock Text="目标数据库" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/><ComboBox x:Name="CmbDbType" SelectedIndex="0" Height="40" Style="{DynamicResource ComboBoxStandard}" ItemContainerStyle="{DynamicResource ComboBoxItemStandard}"><ComboBoxItem Content="PostgreSQL"/><ComboBoxItem Content="SQL Server"/><ComboBoxItem Content="MySQL"/><ComboBoxItem Content="Oracle"/></ComboBox></StackPanel>
                         <StackPanel Grid.Column="2"><TextBlock Text="表名" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/><TextBox x:Name="TxtTableName" Height="40" Padding="10,4,10,4" VerticalContentAlignment="Center" Style="{DynamicResource TextBoxStandard}" TextChanged="TxtTableName_TextChanged" SelectionOpacity="0.4"/></StackPanel>
-                        <StackPanel Grid.Column="4"><TextBlock Text="字段大小写" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/><ComboBox x:Name="CmbCase" SelectedIndex="0" Height="40" Style="{DynamicResource ComboBoxStandard}" ItemContainerStyle="{DynamicResource ComboBoxItemStandard}"><ComboBoxItem Content="保持原样"/><ComboBoxItem Content="全部大写"/><ComboBoxItem Content="全部小写"/></ComboBox></StackPanel>
+                        <StackPanel Grid.Column="4">
+                            <TextBlock Text="表名大小写" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/>
+                            <ComboBox x:Name="CmbTableCase" SelectedIndex="0" Height="40" Style="{DynamicResource ComboBoxStandard}" ItemContainerStyle="{DynamicResource ComboBoxItemStandard}"
+                                      SelectionChanged="ClearSqlOutput" ToolTip="生成 SQL 时转换表名和前缀。需要数据库保留大小写时，请开启自动引用标识符。">
+                                <ComboBoxItem Content="保持原样"/>
+                                <ComboBoxItem Content="全部大写"/>
+                                <ComboBoxItem Content="全部小写"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,12,0,0">
+                            <TextBlock Text="字段大小写" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/>
+                            <ComboBox x:Name="CmbCase" SelectedIndex="0" Height="40" Style="{DynamicResource ComboBoxStandard}" ItemContainerStyle="{DynamicResource ComboBoxItemStandard}" SelectionChanged="CmbCase_SelectionChanged">
+                                <ComboBoxItem Content="保持原样"/>
+                                <ComboBoxItem Content="全部大写"/>
+                                <ComboBoxItem Content="全部小写"/>
+                            </ComboBox>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="3" Margin="0,12,0,0">
+                            <TextBlock Text="表中文注释（选填）" FontSize="13" Foreground="#4A5568" Margin="0,0,0,6"/>
+                            <TextBox x:Name="TxtTableComment" Height="40" Padding="10,4,10,4" VerticalContentAlignment="Center"
+                                     Style="{DynamicResource TextBoxStandard}" TextChanged="ClearSqlOutput"/>
+                        </StackPanel>
                     </Grid>
                     <TextBlock Text="INSERT INTO SQL" FontSize="13" FontWeight="SemiBold" Foreground="#4A5568" Margin="0,0,0,6"/>
                     <TextBox x:Name="TxtInsert" Height="122" AcceptsReturn="True" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="NoWrap" Style="{DynamicResource TextBoxStandard}" ToolTip="例如：INSERT INTO user_info (id, name) VALUES (1, '张三');"/>
